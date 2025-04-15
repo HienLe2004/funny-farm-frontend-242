@@ -1,20 +1,31 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 export default function OverviewPage() {
     return (
-        <div className="min-h-screen w-full">
-            <main>
-                <section>
+        <div className="min-h-screen w-full flex flex-col">
+            <main className="flex-1">
+                <section className="w-full py-6 md:12">
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                             <div className="flex-1">
                                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Funny Farm Dashboard</h1>
-                                <p className="mt-2">Monitor and control farm devices</p>
+                                <p className="mt-2 text-muted-foreground">Monitor and control farm devices</p>
                             </div>
-                            <div className="flex items-center gap-2 bg-green-200">
-                                <button className="bg-green-500 p-2 rounded-xl border-1">To schedule</button>
-                                <button className="bg-green-500 p-2 rounded-xl border-1">To all devices</button>
+                            <div className="flex items-center gap-2">
+                                <Button asChild variant="outline">
+                                    <Link to="/schedule">
+                                        View Schedule
+                                        <ArrowRight className="ml-2 h-4 w-4"/>
+                                    </Link>
+                                </Button>
+                                <Button asChild >
+                                    <Link to="/devices">
+                                        All Devices
+                                        <ArrowRight className="ml-2 h-4 w-4"/>
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
