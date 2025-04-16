@@ -1,3 +1,5 @@
+import DeviceControls from "@/components/DeviceControls"
+import SensorReadings from "@/components/SensorReadings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight } from "lucide-react"
@@ -6,7 +8,7 @@ export default function OverviewPage() {
     return (
         <div className="min-h-screen w-full flex flex-col">
             <main className="flex-1">
-                <section className="w-full py-6 md:12">
+                <section className="w-full py-6 md:py-12">
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                             <div className="flex-1">
@@ -31,25 +33,25 @@ export default function OverviewPage() {
                         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <Card>
                                 <CardHeader className="pb-2">
-                                    <CardTitle>Environment</CardTitle>
+                                    <CardTitle className="text-2xl font-semibold">Environment</CardTitle>
                                     <CardDescription>Current sensor readings</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    SensorReadings
+                                    <SensorReadings/>
                                 </CardContent>
                             </Card>
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Device controls</CardTitle>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-2xl font-semibold">Device controls</CardTitle>
                                     <CardDescription>Manage farm devices</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    DeviceControls
+                                    <DeviceControls/>
                                 </CardContent>
                             </Card>
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>LED Display</CardTitle>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-2xl font-semibold">LED Display</CardTitle>
                                     <CardDescription>Current message on LED screen</CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -63,8 +65,8 @@ export default function OverviewPage() {
                         </div>
                         <div className="mt-6">
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Sensor Data Overview</CardTitle>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-2xl font-semibold">Sensor Data Overview</CardTitle>
                                     <CardDescription>24-hour sensor readings</CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -74,8 +76,8 @@ export default function OverviewPage() {
                         </div>
                         <div className="mt-6">
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Quick Access</CardTitle>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-2xl font-semibold">Quick Access</CardTitle>
                                     <CardDescription>View device details</CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -96,6 +98,12 @@ export default function OverviewPage() {
                                             <Link to="/device/humid-sensor">
                                                 <span className="mr-2 h-4 w-4 text-red-500">●</span>
                                                 Temperature sensor
+                                            </Link>
+                                        </Button>
+                                        <Button variant="outline" className="justify-start">
+                                            <Link to="/device/soil-moisture-sensor">
+                                                <span className="mr-2 h-4 w-4 text-cyan-500">●</span>
+                                                Soil moisture sensor
                                             </Link>
                                         </Button>
                                         <Button variant="outline" className="justify-start">

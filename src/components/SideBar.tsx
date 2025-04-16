@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { BarChart3, Calendar, Droplets, Fan, Gauge, Home, Lightbulb, PanelLeft, PanelLeftClose, Thermometer } from "lucide-react";
+import { BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, PanelLeft, PanelLeftClose, Thermometer } from "lucide-react";
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
@@ -57,7 +57,7 @@ export default function SideBar() {
                         <Button variant={currentPath === "/devices/humidity-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/humidity-sensor">
-                                <Droplets className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
+                                <Droplet className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
                                 {!collapsed && "Humidity sensor"}
                             </Link>
                         </Button>
@@ -66,6 +66,13 @@ export default function SideBar() {
                             <Link to="/devices/temperature-sensor">
                                 <Thermometer className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
                                 {!collapsed && "Temperature sensor"}
+                            </Link>
+                        </Button>
+                        <Button variant={currentPath === "/devices/temperature-sensor" ? "default":"ghost"} asChild
+                        className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
+                            <Link to="/devices/soil-moisture-sensor">
+                                <Droplets className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
+                                {!collapsed && "Soil moisture sensor"}
                             </Link>
                         </Button>
                     </div>
