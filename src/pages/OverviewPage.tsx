@@ -1,4 +1,5 @@
 import DeviceControls from "@/components/DeviceControls"
+import OverviewChart from "@/components/OverviewChart"
 import SensorReadings from "@/components/SensorReadings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -70,7 +71,7 @@ export default function OverviewPage() {
                                     <CardDescription>24-hour sensor readings</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    chart
+                                    <OverviewChart/>
                                 </CardContent>
                             </Card>
                         </div>
