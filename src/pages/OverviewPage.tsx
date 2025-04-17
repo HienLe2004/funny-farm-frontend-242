@@ -7,26 +7,26 @@ import { ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 export default function OverviewPage() {
     return (
-        <div className="min-h-screen w-full flex flex-col">
+        <div className="min-h-screen flex flex-col">
             <main className="flex-1">
                 <section className="w-full py-6 md:py-12">
                     <div className="container px-4 md:px-6">
-                        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                             <div className="flex-1">
-                                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Funny Farm Dashboard</h1>
+                                <h1 className="text-3xl font-bold tracking-tighter text-wrap sm:text-4xl md:text-5xl">Funny Farm Dashboard</h1>
                                 <p className="mt-2 text-muted-foreground">Monitor and control farm devices</p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex gap-2 flex-col md:flex-row">
                                 <Button asChild variant="outline">
                                     <Link to="/schedule">
                                         View Schedule
-                                        <ArrowRight className="ml-2 h-4 w-4"/>
+                                        <ArrowRight/>
                                     </Link>
                                 </Button>
                                 <Button asChild >
                                     <Link to="/devices">
                                         All Devices
-                                        <ArrowRight className="ml-2 h-4 w-4"/>
+                                        <ArrowRight/>
                                     </Link>
                                 </Button>
                             </div>

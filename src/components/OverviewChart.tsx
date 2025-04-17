@@ -75,8 +75,8 @@ export default function OverviewChart () {
         ],
       }
     return (
-        <div>
-            <Tabs defaultValue="all">
+        <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto ">
+            <Tabs defaultValue="all" className="min-w-[700px]">
                 <TabsList className="grid grid-cols-8 mb-4">
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="light">Light</TabsTrigger>
@@ -87,14 +87,14 @@ export default function OverviewChart () {
                     <TabsTrigger value="pump2">Pump 2</TabsTrigger>
                     <TabsTrigger value="fan">Fan</TabsTrigger>
                 </TabsList>
-                <TabsContent value="all" className="h-[300px] w-full">
+                <TabsContent value="all" className="h-[300px]">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"},
                         humidity: {label: "Humidity", color: "#3b82f6"},
                         temperature: {label: "Temperature", color: "#ef4444"},
                         soil: {label: "Soil moisture", color: "#06b6d4"}
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer>
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="time"/>
@@ -112,8 +112,8 @@ export default function OverviewChart () {
                 <TabsContent value="light" className="h-[300px] w-full">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"}
-                    }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    }} className="h-full">
+                        <ResponsiveContainer width="100%" height="100%" className="w-1">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="time"/>
@@ -128,7 +128,7 @@ export default function OverviewChart () {
                 <TabsContent value="humidity" className="h-[300px] w-full">
                     <ChartContainer config={{
                         humidity: {label: "Humidity", color: "#3b82f6"},
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -144,7 +144,7 @@ export default function OverviewChart () {
                 <TabsContent value="temperature" className="h-[300px] w-full">
                     <ChartContainer config={{
                         temperature: {label: "Temperature", color: "#ef4444"},
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -160,7 +160,7 @@ export default function OverviewChart () {
                 <TabsContent value="soil-moisture" className="h-[300px] w-full">
                     <ChartContainer config={{
                         soil: {label: "Soil moisture", color: "#06b6d4"}
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -176,7 +176,7 @@ export default function OverviewChart () {
                 <TabsContent value="pump1" className="h-[300px] w-full">
                     <ChartContainer config={{
                         value: {label: "Pump 1", color: "#22c55e"},
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.pump1} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -192,7 +192,7 @@ export default function OverviewChart () {
                 <TabsContent value="pump2" className="h-[300px] w-full">
                     <ChartContainer config={{
                         value: {label: "Pump 2", color: "#22c55e"},
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.pump2} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -208,7 +208,7 @@ export default function OverviewChart () {
                 <TabsContent value="fan" className="h-[300px] w-full ">
                     <ChartContainer config={{
                         value: {label: "Fan", color: "#a855f7"},
-                    }} className="h-full w-full">
+                    }} className="h-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.fan} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
