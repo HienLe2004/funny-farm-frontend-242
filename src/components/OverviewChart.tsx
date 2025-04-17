@@ -109,10 +109,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="light" className="h-[300px] w-full">
+                <TabsContent value="light" className="h-[300px]">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"}
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%" className="w-1">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -125,10 +125,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="humidity" className="h-[300px] w-full">
+                <TabsContent value="humidity" className="h-[300px]">
                     <ChartContainer config={{
                         humidity: {label: "Humidity", color: "#3b82f6"},
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -141,10 +141,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="temperature" className="h-[300px] w-full">
+                <TabsContent value="temperature" className="h-[300px]">
                     <ChartContainer config={{
                         temperature: {label: "Temperature", color: "#ef4444"},
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -157,10 +157,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="soil-moisture" className="h-[300px] w-full">
+                <TabsContent value="soil-moisture" className="h-[300px]">
                     <ChartContainer config={{
                         soil: {label: "Soil moisture", color: "#06b6d4"}
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -173,10 +173,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="pump1" className="h-[300px] w-full">
+                <TabsContent value="pump1" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Pump 1", color: "#22c55e"},
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.pump1} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -189,10 +189,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="pump2" className="h-[300px] w-full">
+                <TabsContent value="pump2" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Pump 2", color: "#22c55e"},
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.pump2} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -205,10 +205,10 @@ export default function OverviewChart () {
                         </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
-                <TabsContent value="fan" className="h-[300px] w-full ">
+                <TabsContent value="fan" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Fan", color: "#a855f7"},
-                    }} className="h-full">
+                    }} className="h-full w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.fan} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
