@@ -68,7 +68,7 @@ export default function SideBar() {
                                 {!collapsed && "Temperature sensor"}
                             </Link>
                         </Button>
-                        <Button variant={currentPath === "/devices/temperature-sensor" ? "default":"ghost"} asChild
+                        <Button variant={currentPath === "/devices/soil-moisture-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/soil-moisture-sensor">
                                 <Droplets className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
