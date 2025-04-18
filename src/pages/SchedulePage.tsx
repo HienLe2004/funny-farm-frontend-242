@@ -200,7 +200,7 @@ const CustomCalendar = ({ selectedDate, onSelectDate }: { selectedDate: Date; on
                 </TooltipTrigger>
                 {dayTasks.length > 0 && (
                   <TooltipContent side="right" className="w-64 p-0">
-                    <div className="p-2 bg-popover">
+                    <div className="p-2 bg-popover text-red-500">
                       <div className="font-medium mb-1">
                         {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </div>
