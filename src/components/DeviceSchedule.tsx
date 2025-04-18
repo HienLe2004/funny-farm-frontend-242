@@ -32,7 +32,7 @@ const deviceSchedules = {
     { id: 3, time: "05:00 PM", action: "Turn On", days: ["Mon", "Wed", "Fri"] },
     { id: 4, time: "08:00 PM", action: "Turn Off", days: ["Mon", "Wed", "Fri"] },
   ],
-  fan: [
+  "fan": [
     { id: 1, time: "07:00 AM", action: "Turn On", days: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
     { id: 2, time: "11:00 AM", action: "Turn Off", days: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
     { id: 3, time: "04:00 PM", action: "Turn On", days: ["Mon", "Tue", "Wed", "Thu", "Fri"] },

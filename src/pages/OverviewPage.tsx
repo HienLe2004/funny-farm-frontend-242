@@ -83,44 +83,44 @@ export default function OverviewPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/light-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/light-sensor" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-yellow-500">●</span>
                                                 Light sensor
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/humid-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/humidity-sensor" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-blue-500">●</span>
                                                 Humidity sensor
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/humid-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/temperature-sensor" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-red-500">●</span>
                                                 Temperature sensor
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/soil-moisture-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/soil-moisture-sensor" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-cyan-500">●</span>
                                                 Soil moisture sensor
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/humid-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/pump-1" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-green-500">●</span>
                                                 Pump 1
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/humid-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/pump-2" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-green-500">●</span>
                                                 Pump 2
                                             </Link>
                                         </Button>
-                                        <Button variant="outline" className="justify-start">
-                                            <Link to="/device/humid-sensor">
+                                        <Button variant="outline">
+                                            <Link to="/devices/fan" className="flex-1 text-left">
                                                 <span className="mr-2 h-4 w-4 text-purple-500">●</span>
                                                 Fan
                                             </Link>

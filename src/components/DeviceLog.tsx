@@ -22,6 +22,13 @@ const deviceLogs = {
     { time: "Yesterday, 12:30 PM", event: "Sensor calibration", type: "success" },
     { time: "2023-10-20, 09:15 AM", event: "High temperature warning", type: "warning" },
   ],
+  "soil-moisture-sensor": [
+    { time: "Today, 10:23 AM", event: "Value changed to 58%", type: "info" },
+    { time: "Today, 08:15 AM", event: "Value changed to 60%", type: "info" },
+    { time: "Yesterday, 06:45 PM", event: "Value changed to 62%", type: "info" },
+    { time: "Yesterday, 12:30 PM", event: "Sensor calibration", type: "success" },
+    { time: "2023-10-20, 09:15 AM", event: "High soil moisture warning", type: "warning" },
+  ],
   "pump-1": [
     { time: "Today, 09:00 AM", event: "Turned off", type: "info" },
     { time: "Today, 06:00 AM", event: "Turned on", type: "info" },

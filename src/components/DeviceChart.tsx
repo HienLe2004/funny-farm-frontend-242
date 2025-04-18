@@ -29,6 +29,15 @@ const deviceData = {
     { date: "Sat", value: 20 },
     { date: "Sun", value: 21 },
 ],
+"soil-moisture-sensor": [
+    { date: "Mon", value: 55 },
+    { date: "Tue", value: 58 },
+    { date: "Wed", value: 60 },
+    { date: "Thu", value: 62 },
+    { date: "Fri", value: 59 },
+    { date: "Sat", value: 57 },
+    { date: "Sun", value: 58 },
+],
 "pump-1": [
     { date: "Mon", value: 0 },
     { date: "Tue", value: 1 },
@@ -63,6 +72,7 @@ const getDeviceColor = (deviceId: string) => {
 if (deviceId.includes("light")) return "#eab308"
 if (deviceId.includes("humidity")) return "#3b82f6"
 if (deviceId.includes("temperature")) return "#ef4444"
+if (deviceId.includes("soil-moisture")) return "#06b6d4"
 if (deviceId.includes("pump")) return "#22c55e"
 if (deviceId.includes("fan")) return "#a855f7"
 return "#64748b"
@@ -73,6 +83,7 @@ const getValueLabel = (deviceId: string) => {
 if (deviceId.includes("light")) return "Light (%)"
 if (deviceId.includes("humidity")) return "Humidity (%)"
 if (deviceId.includes("temperature")) return "Temperature (°C)"
+if (deviceId.includes("soil-moisture")) return "Soil moisture (%)"
 if (deviceId.includes("pump") || deviceId.includes("fan")) return "Status (On/Off)"
 return "Value"
 }
@@ -82,6 +93,7 @@ const getLineType = (deviceId: string) => {
     if (deviceId.includes("light")) return "monotone"
     if (deviceId.includes("humidity")) return "monotone"
     if (deviceId.includes("temperature")) return "monotone"
+    if (deviceId.includes("soil-moisture")) return "monotone"
     if (deviceId.includes("pump") || deviceId.includes("fan")) return "stepAfter"
     return "monotone"
 }
