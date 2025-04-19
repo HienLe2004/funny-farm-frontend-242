@@ -61,29 +61,29 @@ export function DeviceSchedule({ deviceId }: { deviceId: string }) {
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Add Task
+              Thêm lịch
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
-              <DialogDescription>Create a new scheduled task for this device.</DialogDescription>
+              <DialogTitle>Tạo lịch mới</DialogTitle>
+              <DialogDescription>Thêm lịch mới cho thiết bị này.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="action">Action</Label>
+                <Label htmlFor="action">Hoạt động</Label>
                 <Select defaultValue="on">
                   <SelectTrigger>
                     <SelectValue placeholder="Select action" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="on">Turn On</SelectItem>
-                    <SelectItem value="off">Turn Off</SelectItem>
+                    <SelectItem value="on">Bật</SelectItem>
+                    <SelectItem value="off">Tắt</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="time">Time</Label>
+                <Label htmlFor="time">Thời gian</Label>
                 <Input id="time" type="time" />
               </div>
               <div className="grid gap-2">
@@ -103,16 +103,16 @@ export function DeviceSchedule({ deviceId }: { deviceId: string }) {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>
-                Cancel
+                Hủy
               </Button>
-              <Button onClick={() => setOpen(false)}>Save Task</Button>
+              <Button onClick={() => setOpen(false)}>Lưu lịch</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {schedules.length === 0 ? (
-        <div className="text-center py-4 text-muted-foreground">No scheduled tasks</div>
+        <div className="text-center py-4 text-muted-foreground">Không có lịch</div>
       ) : (
         <div className="grid gap-3">
           {schedules.map((schedule) => (
@@ -132,10 +132,10 @@ export function DeviceSchedule({ deviceId }: { deviceId: string }) {
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm">
-                      Edit
+                      Sửa
                     </Button>
                     <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
-                      Delete
+                      Xóa
                     </Button>
                   </div>
                 </div>
