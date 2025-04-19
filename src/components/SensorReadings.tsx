@@ -1,8 +1,7 @@
 import { Droplet, Droplets, Lightbulb, Thermometer } from "lucide-react";
 import { useEffect, useState } from "react";
-import { formatDistanceToNow, formatDistanceToNowStrict, parseISO } from "date-fns";
+import { formatDistanceToNowStrict, parseISO } from "date-fns";
 import mqtt from "mqtt"
-
 export default function SensorReadings () {
     const [sensorValues, setSensorValues] = useState({
         "light":0,
@@ -12,21 +11,26 @@ export default function SensorReadings () {
     })
     const [lastUpdatedDate, setLastUpdatedDate] = useState(new Date())
     const [tick,setTick] = useState(0)
+    const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
+    const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
+    const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
+    const [groupKey, setGroupKey] = useState('da')
+    const feedKeyList = ['hum', 'light', 'temp', 'soil']
     useEffect(() => {
-        const groupKey = 'da'
-        const feedKeyList = ['hum', 'light', 'temp', 'soil']
+        if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
+            console.log("INVALID KEY")
+            return
+        }
+        const mqttBrokerUrl = 'mqtt://io.adafruit.com'
+        const client = mqtt.connect(mqttBrokerUrl, {
+            username: userAIOUsername,
+            password: userAIOUserkey
+        })
         const connectAdafruitMQTT = () => {
-            const mqttBrokerUrl = 'mqtt://io.adafruit.com'
-            const mqttUsername =  ''
-            const mqttUserKey = ''
-            const client = mqtt.connect(mqttBrokerUrl, {
-                username: mqttUsername,
-                password: mqttUserKey
-            })
             client.on('connect', () => {
                 console.log('Connected to Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.subscribe(`${mqttUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
                 }
             })
             client.on('message', (topic,message) => {
@@ -40,19 +44,20 @@ export default function SensorReadings () {
             })
             client.on('disconnect', () => {
                 console.log('Disconneted from Adafruit IO MQTT')
+                for (let i = 0; i < feedKeyList.length; i++) {
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                }
             })
         }
         async function getCurrentSensorValue () {
             const apiUrl = 'https://io.adafruit.com/api/v2/'
-            const feedUsername = ''
-            const feedUserKey = ''
             const updatedDates = []
             let latestDate = new Date()
             for (let i = 0; i < feedKeyList.length; i++) {
-                const response = await fetch(`${apiUrl}/${feedUsername}/feeds/${groupKey}.${feedKeyList[i]}/data/last`, {
+                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}/data/last`, {
                     method: 'GET',
                     headers: {
-                        'x-aio-key': feedUserKey
+                        'x-aio-key': userAIOUserkey
                     }
                 })
                 if (!response.ok) {
@@ -79,7 +84,9 @@ export default function SensorReadings () {
         }, 1000);
         getCurrentSensorValue()
         connectAdafruitMQTT()
-        return (() => clearInterval(interval))
+        return () => {
+            clearInterval(interval); 
+        }
     }, [])
     
     

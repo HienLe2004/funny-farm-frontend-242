@@ -1,84 +1,122 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useEffect, useState } from "react";
+import mqtt from "mqtt";
+import { parseISO } from "date-fns";
 export default function OverviewChart () {
-    const data = {
-        all: [
-          { time: "00:00", temperature: 18, humidity: 65, light: 0,  soil: 20},
-          { time: "03:00", temperature: 17, humidity: 68, light: 0,  soil: 40},
-          { time: "06:00", temperature: 16, humidity: 70, light: 10, soil: 10},
-          { time: "09:00", temperature: 19, humidity: 65, light: 50, soil: 60},
-          { time: "12:00", temperature: 23, humidity: 55, light: 90, soil: 52},
-          { time: "15:00", temperature: 25, humidity: 50, light: 80, soil: 29},
-          { time: "18:00", temperature: 22, humidity: 55, light: 30, soil: 13},
-          { time: "21:00", temperature: 20, humidity: 60, light: 5,  soil: 40},
-        ],
-        temperature: [
-          { time: "00:00", value: 18 },
-          { time: "03:00", value: 17 },
-          { time: "06:00", value: 16 },
-          { time: "09:00", value: 19 },
-          { time: "12:00", value: 23 },
-          { time: "15:00", value: 25 },
-          { time: "18:00", value: 22 },
-          { time: "21:00", value: 20 },
-        ],
-        humidity: [
-          { time: "00:00", value: 65 },
-          { time: "03:00", value: 68 },
-          { time: "06:00", value: 70 },
-          { time: "09:00", value: 65 },
-          { time: "12:00", value: 55 },
-          { time: "15:00", value: 50 },
-          { time: "18:00", value: 55 },
-          { time: "21:00", value: 60 },
-        ],
-        light: [
-          { time: "00:00", value: 0 },
-          { time: "03:00", value: 0 },
-          { time: "06:00", value: 10 },
-          { time: "09:00", value: 50 },
-          { time: "12:00", value: 90 },
-          { time: "15:00", value: 80 },
-          { time: "18:00", value: 30 },
-          { time: "21:00", value: 5 },
-        ],
-        pump1: [
-          { time: "00:00", value: 0 },
-          { time: "03:00", value: 0 },
-          { time: "06:00", value: 1 },
-          { time: "09:00", value: 0 },
-          { time: "12:00", value: 0 },
-          { time: "15:00", value: 0 },
-          { time: "18:00", value: 1 },
-          { time: "21:00", value: 0 },
-        ],
-        pump2: [
-          { time: "00:00", value: 0 },
-          { time: "03:00", value: 0 },
-          { time: "06:00", value: 0 },
-          { time: "09:00", value: 1 },
-          { time: "12:00", value: 0 },
-          { time: "15:00", value: 0 },
-          { time: "18:00", value: 0 },
-          { time: "21:00", value: 1 },
-        ],
-        fan: [
-          { time: "00:00", value: 0 },
-          { time: "03:00", value: 0 },
-          { time: "06:00", value: 0 },
-          { time: "09:00", value: 0 },
-          { time: "12:00", value: 1 },
-          { time: "15:00", value: 1 },
-          { time: "18:00", value: 0 },
-          { time: "21:00", value: 0 },
-        ],
-      }
+    interface Data {
+        "time":string, value:number|null
+    }
+    interface DeviceData {
+        [key: string]: Data[]|[]; 
+    }
+    const [sensorValues, setSensorValues] = useState<DeviceData>({
+            "light":[],
+            "hum":[],
+            "temp":[],
+            "soil":[],
+            "fan":[],
+            "pump1":[],
+            "pump2":[]
+        })
+    const [tick,setTick] = useState(0)
+    const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
+    const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
+    const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
+    const [groupKey, setGroupKey] = useState('da')
+    const feedKeyList = ['light', 'hum', 'temp', 'soil', 'pump1', 'pump2', 'fan']
+    
+    useEffect(() => {
+        if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
+            console.log("INVALID KEY")
+            return
+        }
+        const mqttBrokerUrl = 'mqtt://io.adafruit.com'
+        const client = mqtt.connect(mqttBrokerUrl, {
+            username: userAIOUsername,
+            password: userAIOUserkey
+        })
+        const connectAdafruitMQTT = () => {
+            client.on('connect', () => {
+                console.log('Connected to Adafruit IO MQTT')
+                for (let i = 0; i < feedKeyList.length; i++) {
+                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                }
+            })
+            client.on('message', (topic,message) => {
+                const feedKey:string = topic.split('/')[2].split('.')[1]
+                console.log(`Received message on topic ${feedKey} : ${message.toString()}`)
+                console.log(sensorValues[feedKey])
+                let values:Data[] = sensorValues[feedKey]
+                let newTime:string = (new Date()).toISOString()
+                if (values.length > 0 && new Date(newTime).getTime() - new Date(values[values.length - 1].time).getTime() > 2000) {
+                    console.log("Duplicate data");
+                    values[values.length - 1].value = Number(message.toString())
+                }
+                else {
+                    console.log("New data" + values.length)
+                    if (values.length > 0) {
+                        console.log(values[values.length - 1]?.time.slice(0,20))
+                        console.log(values[values.length - 1]?.time.slice(0,20))
+                    }
+                    values.push({time: new Date().toISOString(),value:Number(message.toString())})
+                }
+                getTwentyFourHoursDeviceValues(feedKey)
+            })
+            client.on('error', (error) => {
+                console.log(`MQTT ERROR: ${error}`)
+            })
+            client.on('disconnect', () => {
+                console.log('Disconneted from Adafruit IO MQTT')
+                for (let i = 0; i < feedKeyList.length; i++) {
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                }
+            })
+        }
+        async function getTwentyFourHoursDeviceValues (feedKey:string) {
+            const apiUrl = 'https://io.adafruit.com/api/v2/'
+            let currentDate = new Date()
+            let twentyFourHoursAgo = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000))
+            const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}/data`, {
+                method: 'GET',
+                headers: {
+                    'x-aio-key': userAIOUserkey
+                }
+            })
+            if (!response.ok) {
+                console.log(`HTTP ERROR! status ${response.status}`)
+                return response.json()
+            }
+            const data = await response.json()
+            let realValues = data.filter((day:{'created_at':string, 'value':string}) => { 
+                const createdDataDate = new Date(day['created_at'])
+                return (createdDataDate < currentDate && createdDataDate > twentyFourHoursAgo);
+            })
+            realValues.reverse()
+            setSensorValues(prev => ({...prev, 
+                [feedKey]:realValues.map((day:{'created_at':string, 'value':string}) => 
+                    ({"time":day['created_at'], "value":Number(day['value'])})
+            )}))
+        }
+        const interval = setInterval(() => {
+            setTick((prev) => prev + 1)
+        }, 1000);
+        for (let i = 0; i < feedKeyList.length; i++) {
+            console.log(i)
+            getTwentyFourHoursDeviceValues(feedKeyList[i])
+        }
+        connectAdafruitMQTT()
+        return () => {
+            clearInterval(interval); 
+        }
+    }, [])
+    
     return (
         <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto ">
-            <Tabs defaultValue="all" className="min-w-[700px]">
-                <TabsList className="grid grid-cols-8 mb-4">
-                    <TabsTrigger value="all">All</TabsTrigger>
+            <Tabs defaultValue="light" className="min-w-[700px]">
+                <TabsList className="grid grid-cols-7 mb-4">
+                    {/* <TabsTrigger value="all">All</TabsTrigger> */}
                     <TabsTrigger value="light">Light</TabsTrigger>
                     <TabsTrigger value="humidity">Humidity</TabsTrigger>
                     <TabsTrigger value="temperature">Temperature</TabsTrigger>
@@ -87,14 +125,13 @@ export default function OverviewChart () {
                     <TabsTrigger value="pump2">Pump 2</TabsTrigger>
                     <TabsTrigger value="fan">Fan</TabsTrigger>
                 </TabsList>
-                <TabsContent value="all" className="h-[300px]">
+                {/* <TabsContent value="all" className="h-[300px]">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"},
                         humidity: {label: "Humidity", color: "#3b82f6"},
                         temperature: {label: "Temperature", color: "#ef4444"},
                         soil: {label: "Soil moisture", color: "#06b6d4"}
                     }} className="h-full w-full">
-                        <ResponsiveContainer>
                             <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="time"/>
@@ -106,119 +143,204 @@ export default function OverviewChart () {
                                 <Line type="monotone" dataKey="temperature" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Temperature (°C)"/>
                                 <Line type="monotone" dataKey="soil" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Soil moisture (%)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
-                </TabsContent>
+                </TabsContent> */}
                 <TabsContent value="light" className="h-[300px]">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"}
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%" className="w-1">
-                            <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues['light']} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    console.log(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={
+                                    <ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })}} />
+                                }/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="light" stroke="var(--color-light)" activeDot={{ r: 8 }} name="Light (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-light)" activeDot={{ r: 8 }} name="Light (%)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="humidity" className="h-[300px]">
                     <ChartContainer config={{
                         humidity: {label: "Humidity", color: "#3b82f6"},
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues["hum"]} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="humidity" stroke="var(--color-humidity)" activeDot={{ r: 8 }} name="Humidity (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-humidity)" activeDot={{ r: 8 }} name="Humidity (%)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="temperature" className="h-[300px]">
                     <ChartContainer config={{
                         temperature: {label: "Temperature", color: "#ef4444"},
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues["temp"]} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="temperature" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Temperature (°C)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Temperature (°C)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="soil-moisture" className="h-[300px]">
                     <ChartContainer config={{
                         soil: {label: "Soil moisture", color: "#06b6d4"}
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues["soil"]} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="soil" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Soil moisture (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Soil moisture (%)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="pump1" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Pump 1", color: "#22c55e"},
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.pump1} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues['pump1']} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
                                 <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Pump 1 (On/Off)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="pump2" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Pump 2", color: "#22c55e"},
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.pump2} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues['pump2']} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
                                 <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Pump 2 (On/Off)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
                 <TabsContent value="fan" className="h-[300px]">
                     <ChartContainer config={{
                         value: {label: "Fan", color: "#a855f7"},
                     }} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.fan} margin={{top:5, right:30, left:10, bottom:5}}>
+                            <LineChart data={sensorValues['fan']} margin={{top:5, right:30, left:10, bottom:5}}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
+                                <XAxis dataKey="time" tickMargin={8} minTickGap={32}
+                                    tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    })
+                                }}/>
                                 <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
+                                <Tooltip content={<ChartTooltipContent labelFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleTimeString("vi-VN", {
+                                        hour: "numeric",
+                                        minute: "numeric",
+                                        second: "numeric"
+                                    })
+                                }}/>}/>
                                 <Legend/>
                                 <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Fan (On/Off)"/>
                             </LineChart>
-                        </ResponsiveContainer>
                     </ChartContainer>
                 </TabsContent>
             </Tabs>
