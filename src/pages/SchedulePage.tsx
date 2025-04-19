@@ -143,17 +143,17 @@ const CustomCalendar = ({ selectedDate, onSelectDate }: { selectedDate: Date; on
       <div className="flex justify-between items-center mb-4">
         <Button variant="outline" size="sm" onClick={prevMonth}>
           <ChevronLeft className="h-4 w-4" />
-          Previous
+          Trước
         </Button>
-        <h3 className="font-medium">{currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+        <h3 className="font-medium">{currentMonth.toLocaleDateString("vi-VN", { month: "long", year: "numeric" })}</h3>
         <Button variant="outline" size="sm" onClick={nextMonth}>
-          Next
+          Sau
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((day) => (
           <div key={day} className="font-medium text-sm py-1">
             {day}
           </div>
@@ -202,7 +202,7 @@ const CustomCalendar = ({ selectedDate, onSelectDate }: { selectedDate: Date; on
                   <TooltipContent side="right" className="w-64 p-0">
                     <div className="p-2 bg-popover text-red-500">
                       <div className="font-medium mb-1">
-                        {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        {day.toLocaleDateString("vi-VN", { weekday: "short", month: "short", day: "numeric" })}
                       </div>
                       <div className="space-y-1">
                         {dayTasks.map((task) => (
@@ -249,53 +249,53 @@ export default function SchedulePage() {
                     <span className="sr-only">Back</span>
                   </Link>
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Schedule</h1>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Lập lịch</h1>
               </div>
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
-                    New Task
+                    Lịch mới
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
-                    <DialogDescription>Create a new scheduled task for your devices.</DialogDescription>
+                    <DialogTitle>Thêm lịch mới</DialogTitle>
+                    <DialogDescription>Tạo một lịch mới cho thiết bị.</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="device">Device</Label>
+                      <Label htmlFor="device">Thiết bị</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select device" />
+                          <SelectValue placeholder="Chọn thiết bị" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pump1">Pump 1</SelectItem>
-                          <SelectItem value="pump2">Pump 2</SelectItem>
-                          <SelectItem value="fan">Fan</SelectItem>
+                          <SelectItem value="pump1">Máy bơm 1</SelectItem>
+                          <SelectItem value="pump2">Máy bơm 2</SelectItem>
+                          <SelectItem value="fan">Quạt</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="action">Action</Label>
+                      <Label htmlFor="action">Hành động</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select action" />
+                          <SelectValue placeholder="Chọn hành động" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="on">Turn On</SelectItem>
-                          <SelectItem value="off">Turn Off</SelectItem>
+                          <SelectItem value="on">Bật</SelectItem>
+                          <SelectItem value="off">Tắt</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="date">Date</Label>
+                        <Label htmlFor="date">Ngầy</Label>
                         <Input id="date" type="date" defaultValue={date.toISOString().split("T")[0]} />
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="time">Time</Label>
+                        <Label htmlFor="time">Thời gian</Label>
                         <Input id="time" type="time" />
                       </div>
                     </div>
@@ -316,9 +316,9 @@ export default function SchedulePage() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setOpen(false)}>
-                      Cancel
+                      Hủy
                     </Button>
-                    <Button onClick={() => setOpen(false)}>Save Task</Button>
+                    <Button onClick={() => setOpen(false)}>Lưu lịch</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -327,8 +327,8 @@ export default function SchedulePage() {
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Calendar</CardTitle>
-                  <CardDescription>View and select scheduled days</CardDescription>
+                  <CardTitle>Lịch</CardTitle>
+                  <CardDescription>Xem và chọn ngày có lịch</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <CustomCalendar selectedDate={date} onSelectDate={setDate} />
@@ -339,34 +339,34 @@ export default function SchedulePage() {
                 <CardHeader>
                   <CardTitle>
                     {date
-                      ? date.toLocaleDateString("en-US", {
+                      ? date.toLocaleDateString("vi-VN", {
                           weekday: "long",
                           month: "long",
                           day: "numeric",
                           year: "numeric",
                         })
-                      : "No Date Selected"}
+                      : "Chưa ngày nào được chọn"}
                   </CardTitle>
                   <CardDescription>
-                    {tasks.length} {tasks.length === 1 ? "task" : "tasks"} scheduled
+                    {tasks.length} {/*tasks.length === 1 ? "task" : "tasks"*/} lịch
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {tasks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      <p>No tasks scheduled for this day</p>
+                      <p>Không có lịch cho ngày này</p>
                       <Button className="mt-4" onClick={() => setOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Task
+                         Thêm lịch
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <Tabs defaultValue="all">
                         <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="all">All</TabsTrigger>
-                          <TabsTrigger value="pumps">Pumps</TabsTrigger>
-                          <TabsTrigger value="fan">Fan</TabsTrigger>
+                          <TabsTrigger value="all">Tất cả</TabsTrigger>
+                          <TabsTrigger value="pumps">Máy bơm</TabsTrigger>
+                          <TabsTrigger value="fan">Quạt</TabsTrigger>
                         </TabsList>
                         <TabsContent value="all" className="mt-4 space-y-4">
                           {tasks.map((task) => (
@@ -379,10 +379,10 @@ export default function SchedulePage() {
                               </div>
                               <div className="flex space-x-2">
                                 <Button variant="outline" size="sm">
-                                  Edit
+                                  Sửa
                                 </Button>
                                 <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
-                                  Delete
+                                  Xóa
                                 </Button>
                               </div>
                             </div>
@@ -401,10 +401,10 @@ export default function SchedulePage() {
                                 </div>
                                 <div className="flex space-x-2">
                                   <Button variant="outline" size="sm">
-                                    Edit
+                                    Sửa
                                   </Button>
                                   <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
-                                    Delete
+                                    Xóa
                                   </Button>
                                 </div>
                               </div>
@@ -423,10 +423,10 @@ export default function SchedulePage() {
                                 </div>
                                 <div className="flex space-x-2">
                                   <Button variant="outline" size="sm">
-                                    Edit
+                                    Sửa
                                   </Button>
                                   <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
-                                    Delete
+                                    Xóa
                                   </Button>
                                 </div>
                               </div>

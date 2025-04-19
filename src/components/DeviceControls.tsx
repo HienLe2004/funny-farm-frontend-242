@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Fan, Gauge } from "lucide-react"
 import mqtt from "mqtt"
 import { formatDistanceToNowStrict, parseISO } from "date-fns"
+import { vi } from "date-fns/locale"
 export default function DeviceControls() {
     const [actuatorValues, setActuatorValues] = useState({
         "pump1":false,
@@ -145,7 +146,7 @@ export default function DeviceControls() {
                 <Switch id="fan" checked={actuatorValues.fan} onCheckedChange={(checked)=>{handleSwitch("fan",checked)}}/>
             </div>
             <div className="pt-2">
-                <div className="text-xs text-muted-foreground">Last updated: {formatDistanceToNowStrict(lastUpdatedDate, { addSuffix: true})}</div>
+                <div className="text-xs text-muted-foreground">Cập nhật lần cuối: {formatDistanceToNowStrict(lastUpdatedDate, { addSuffix: true, locale: vi})}</div>
             </div>
         </div>
     )

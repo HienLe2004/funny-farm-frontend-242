@@ -80,7 +80,7 @@ export default function DeviceChart({ deviceId }: { deviceId: string }) {
                 return (createdDataDate < currentDate && createdDataDate > sevenDaysAgo);
             })
             realValues.reverse()
-            console.log(realValues)
+            // console.log(realValues)
             setDeviceData( 
                 realValues.map((day:{'created_at':string, 'value':string}) => 
                     ({"time":day['created_at'], "value":Number(day['value'])})

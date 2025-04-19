@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
+import { vi } from "date-fns/locale";
 import { ArrowLeft, Calendar, Clock, History, Info } from "lucide-react"
 import mqtt from "mqtt";
 import { useEffect, useState } from "react";
@@ -24,7 +25,8 @@ export default function DeviceDetailPage () {
     }
     const [devices,setDevices] = useState({
       "light-sensor": {
-        name: "Light Sensor",
+        name: "Cảm biến Ánh sáng",
+        unit: "%",
         type: "sensor",
         color: "text-yellow-500",
         value: "0",
@@ -32,7 +34,8 @@ export default function DeviceDetailPage () {
         status: "active"
       },
       "humidity-sensor": {
-        name: "Humidity Sensor",
+        name: "Cảm biến Độ ẩm không khí",
+        unit: "%",
         type: "sensor",
         color: "text-blue-500",
         value: "0",
@@ -40,7 +43,8 @@ export default function DeviceDetailPage () {
         status: "active"
       },
       "temperature-sensor": {
-        name: "Temperature Sensor",
+        name: "Cảm biến nhiệt độ",
+        unit: "°C",
         type: "sensor",
         color: "text-red-500",
         value: "0",
@@ -48,7 +52,8 @@ export default function DeviceDetailPage () {
         status: "active"
       },
       "soil-moisture-sensor": {
-        name: "Soil moisture Sensor",
+        name: "Cám biến độ ẩm đất",
+        unit: "%",
         type: "sensor",
         color: "text-cyan-500",
         value: "0",
@@ -56,7 +61,8 @@ export default function DeviceDetailPage () {
         status: "active"
       },
       "pump-1": {
-        name: "Pump 1",
+        name: "Máy bơm 1",
+        unit: "",
         type: "actuator",
         color: "text-green-500",
         value: "0",
@@ -64,7 +70,8 @@ export default function DeviceDetailPage () {
         status: "inactive"
       },
       "pump-2": {
-        name: "Pump 2",
+        name: "Máy bơm 2",
+        unit: "",
         type: "actuator",
         color: "text-green-500",
         value: "0",
@@ -72,7 +79,8 @@ export default function DeviceDetailPage () {
         status: "inactive"
       },
       "fan": {
-        name: "Fan",
+        name: "Quạt",
+        unit: "",
         type: "actuator",
         color: "text-purple-500",
         value: "0",
@@ -148,7 +156,12 @@ export default function DeviceDetailPage () {
           console.log("HTTP ERROR! status " + response.status)
         } 
         const data = await response.json()
-        setDevice(prev => ({...prev, value:data['last_value'], lastUpdated:data['updated_at'], status:data['last_value']=="0"?"inactive":"active"}))
+        if (device.type == "actuator") {
+          setDevice(prev => ({...prev, value:data['last_value'], lastUpdated:data['updated_at'], status:data['last_value']=="0"?"inactive":"active"}))
+        }
+        else {
+          setDevice(prev => ({...prev, value:data['last_value'], lastUpdated:data['updated_at']}))
+        }
         // console.log(data)
       }
       const interval = setInterval(() => {
@@ -159,7 +172,7 @@ export default function DeviceDetailPage () {
       return (() => {
         clearInterval(interval)
       })
-    },[])
+    },[feedKey])
     useEffect(()=>{
       setDevice(devices[id as keyof typeof devices])
       setFeedKey(feedKeyList[id as keyof typeof feedKeyList])
@@ -191,7 +204,7 @@ export default function DeviceDetailPage () {
                       <div className="grid gap-2">
                         <div className="flex justify-between">
                           <span className="text-sm font-medium">Giá trị hiện tại:</span>
-                          <span className="font-bold">{device.value}</span>
+                          <span className="font-bold">{device.value}{device.unit}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm font-medium">Trạng thái:</span>
@@ -202,8 +215,8 @@ export default function DeviceDetailPage () {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Cập nhật:</span>
-                          <span className="text-sm text-muted-foreground">{formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true})}</span>
+                          <span className="text-sm font-medium">Cập nhật lần cuối:</span>
+                          <span className="text-sm text-muted-foreground">{formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true, locale: vi})}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm font-medium">Loại thiết bị:</span>

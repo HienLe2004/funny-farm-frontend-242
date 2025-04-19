@@ -2,6 +2,7 @@ import { Droplet, Droplets, Lightbulb, Thermometer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
 import mqtt from "mqtt"
+import { vi } from "date-fns/locale";
 export default function SensorReadings () {
     const [sensorValues, setSensorValues] = useState({
         "light":0,
@@ -121,7 +122,7 @@ export default function SensorReadings () {
                 <div className="font-bold">{sensorValues.soil}%</div>
             </div>
             <div className="pt-2">
-                <div className="text-xs text-muted-foreground">Last updated: {formatDistanceToNowStrict(lastUpdatedDate, { addSuffix: true})}</div>
+                <div className="text-xs text-muted-foreground">Cập nhật lần cuối: {formatDistanceToNowStrict(lastUpdatedDate, { addSuffix: true, locale: vi})}</div>
             </div>
         </div>
     )
