@@ -4,73 +4,166 @@ import { DeviceSchedule } from "@/components/DeviceSchedule";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDistanceToNowStrict } from "date-fns";
 import { ArrowLeft, Calendar, Clock, History, Info } from "lucide-react"
+import mqtt from "mqtt";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom"
 
-const devices = {
-    "light-sensor": {
-      name: "Light Sensor",
-      type: "sensor",
-      value: "75%",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      color: "text-yellow-500",
-    },
-    "humidity-sensor": {
-      name: "Humidity Sensor",
-      type: "sensor",
-      value: "58%",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      color: "text-blue-500",
-    },
-    "temperature-sensor": {
-      name: "Temperature Sensor",
-      type: "sensor",
-      value: "23.5°C",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      color: "text-red-500",
-    },
-    "soil-moisture-sensor": {
-      name: "Soil moisture Sensor",
-      type: "sensor",
-      value: "58%",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      color: "text-cyan-500",
-    },
-    "pump-1": {
-      name: "Pump 1",
-      type: "actuator",
-      value: "Off",
-      status: "active",
-      lastUpdated: "15 minutes ago",
-      color: "text-green-500",
-    },
-    "pump-2": {
-      name: "Pump 2",
-      type: "actuator",
-      value: "Off",
-      status: "inactive",
-      lastUpdated: "1 hour ago",
-      color: "text-green-500",
-    },
-    fan: {
-      name: "Fan",
-      type: "actuator",
-      value: "Off",
-      status: "inactive",
-      lastUpdated: "30 minutes ago",
-      color: "text-purple-500",
-    },
-  }
 export default function DeviceDetailPage () {
     const {id} = useParams();
-    const device = devices[id as keyof typeof devices]
+    const [tick,setTick] = useState(0)
+    const feedKeyList = {
+      'light-sensor':'light',
+      'humidity-sensor':'hum',
+      'temperature-sensor':'temp',
+      'soil-moisture-sensor':'soil',
+      'pump-1':'pump1',
+      'pump-2':'pump2',
+      'fan':'fan'
+    }
+    const [devices,setDevices] = useState({
+      "light-sensor": {
+        name: "Light Sensor",
+        type: "sensor",
+        color: "text-yellow-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "active"
+      },
+      "humidity-sensor": {
+        name: "Humidity Sensor",
+        type: "sensor",
+        color: "text-blue-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "active"
+      },
+      "temperature-sensor": {
+        name: "Temperature Sensor",
+        type: "sensor",
+        color: "text-red-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "active"
+      },
+      "soil-moisture-sensor": {
+        name: "Soil moisture Sensor",
+        type: "sensor",
+        color: "text-cyan-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "active"
+      },
+      "pump-1": {
+        name: "Pump 1",
+        type: "actuator",
+        color: "text-green-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "inactive"
+      },
+      "pump-2": {
+        name: "Pump 2",
+        type: "actuator",
+        color: "text-green-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "inactive"
+      },
+      "fan": {
+        name: "Fan",
+        type: "actuator",
+        color: "text-purple-500",
+        value: "0",
+        lastUpdated: new Date(),
+        status: "inactive"
+      },
+    })
+    const [device,setDevice] = useState(devices[id as keyof typeof devices])
     if (!device) {
         return<>Not found</>
     }
+    const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
+    const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
+    const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
+    const [groupKey, setGroupKey] =  useState('da')
+    const [feedKey, setFeedKey] = useState(feedKeyList[id as keyof typeof feedKeyList])
+    const handleClick = async () => {
+      if (device.type == "sensor") {
+        console.log("Can not turn on/off sensor")
+        return
+      }
+      const apiUrl = 'https://io.adafruit.com/api/v2/'
+      const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}/data`,  {
+        method: 'POST',
+        headers: {
+            "x-aio-key": userAIOUserkey,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"value":device.value=="0"?1:0})
+      })
+      if (!response.ok) {
+          console.log(`HTTP ERROR! status ${response.status}`)
+          return response.json()
+      }
+    }
+    useEffect(()=>{
+      if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
+        console.log("INVALID KEY")
+        return
+      }
+      const mqttBrokerUrl = 'mqtt://io.adafruit.com'
+      const client = mqtt.connect(mqttBrokerUrl, {
+        username: userAIOUsername,
+        password: userAIOUserkey
+      })
+      const connectAdafruitMQTT = () => {
+          client.on('connect', () => {
+              console.log('Connected to Adafruit IO MQTT')
+              client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+          })
+          client.on('message', (topic,message) => {
+              const feedKey = topic.split('/')[2].split('.')[1]
+              console.log(`Received message on topic ${feedKey} : ${message.toString()}`)
+              if (device.type == 'actuator') {
+                setDevice(prev => ({...prev, value:message.toString(), lastUpdated: new Date(), status:message.toString()==="0"?"inactive":"active"}))
+              }
+              else {
+                setDevice(prev => ({...prev, value:message.toString(), lastUpdated: new Date()}))
+              }
+          })
+          client.on('error', (error) => {
+              console.log(`MQTT ERROR: ${error}`)
+          })
+          client.on('disconnect', () => {
+              console.log('Disconneted from Adafruit IO MQTT')
+              client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+          })
+      }
+      const getDeviceData = async()=>{
+        const apiUrl = 'https://io.adafruit.com/api/v2/'
+        const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+        if (!response.ok) {
+          console.log("HTTP ERROR! status " + response.status)
+        } 
+        const data = await response.json()
+        setDevice(prev => ({...prev, value:data['last_value'], lastUpdated:data['updated_at'], status:data['last_value']=="0"?"inactive":"active"}))
+        // console.log(data)
+      }
+      const interval = setInterval(() => {
+        setTick(prev => prev + 1)
+      }, 1000);
+      connectAdafruitMQTT()
+      getDeviceData()
+      return (() => {
+        clearInterval(interval)
+      })
+    },[])
+    useEffect(()=>{
+      setDevice(devices[id as keyof typeof devices])
+      setFeedKey(feedKeyList[id as keyof typeof feedKeyList])
+    },[id])
     return (
         <div className="flex min-h-screen w-full flex-col">
           <main className="flex-1">
@@ -91,17 +184,17 @@ export default function DeviceDetailPage () {
                 <div className="mt-6 grid gap-6 md:grid-cols-3">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-2xl font-semibold">Status</CardTitle>
-                      <CardDescription>Current device information</CardDescription>
+                      <CardTitle className="text-2xl font-semibold">Trạng thái</CardTitle>
+                      <CardDescription>Thông tin hiện tại</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid gap-2">
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Current Value:</span>
+                          <span className="text-sm font-medium">Giá trị hiện tại:</span>
                           <span className="font-bold">{device.value}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Status:</span>
+                          <span className="text-sm font-medium">Trạng thái:</span>
                           <span
                             className={`font-medium ${device.status === "active" ? "text-green-500" : "text-gray-500"}`}
                           >
@@ -109,24 +202,24 @@ export default function DeviceDetailPage () {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Last Updated:</span>
-                          <span className="text-sm text-muted-foreground">{device.lastUpdated}</span>
+                          <span className="text-sm font-medium">Cập nhật:</span>
+                          <span className="text-sm text-muted-foreground">{formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true})}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Type:</span>
-                          <span className="text-sm capitalize">{device.type}</span>
+                          <span className="text-sm font-medium">Loại thiết bị:</span>
+                          <span className="text-sm">{device.type=="sensor"?"Cảm biến":"Điều khiển"}</span>
                         </div>
                       </div>
                       {device.type === "actuator" && (
-                        <Button className="mt-4 w-full">{device.status === "active" ? "Turn Off" : "Turn On"}</Button>
+                        <Button className="mt-4 w-full" onClick={handleClick}>{device.status === "active" ? "Turn Off" : "Turn On"}</Button>
                       )}
                     </CardContent>
                   </Card>
     
                   <Card className="md:col-span-2">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-2xl font-semibold">Quick Information</CardTitle>
-                      <CardDescription>Device overview and actions</CardDescription>
+                      <CardTitle className="text-2xl font-semibold">Thông tin khác</CardTitle>
+                      <CardDescription>Thông tin khác về thiết bị</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid gap-4 md:grid-cols-2">
@@ -166,15 +259,15 @@ export default function DeviceDetailPage () {
                 <div className="mt-6">
                   <Tabs defaultValue="chart">
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="chart">Chart</TabsTrigger>
-                      <TabsTrigger value="log">Activity Log</TabsTrigger>
-                      <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                      <TabsTrigger value="chart">Biểu đồ</TabsTrigger>
+                      <TabsTrigger value="log">Nhật ký hoạt động</TabsTrigger>
+                      <TabsTrigger value="schedule">Lập lịch</TabsTrigger>
                     </TabsList>
                     <TabsContent value="chart" className="mt-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-2xl font-semibold">Historical Data</CardTitle>
-                          <CardDescription>7-day data visualization</CardDescription>
+                          <CardTitle className="text-2xl font-semibold">Lịch sử dữ liệu</CardTitle>
+                          <CardDescription>Biểu đồ dữ liệu 7 ngày</CardDescription>
                         </CardHeader>
                         <CardContent>
                           <DeviceChart deviceId={id?id:""} />
@@ -184,8 +277,8 @@ export default function DeviceDetailPage () {
                     <TabsContent value="log" className="mt-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-2xl font-semibold">Activity Log</CardTitle>
-                          <CardDescription>Recent device activities and events</CardDescription>
+                          <CardTitle className="text-2xl font-semibold">Nhật ký hoạt động</CardTitle>
+                          <CardDescription>Hoạt động và sự kiện gần đây</CardDescription>
                         </CardHeader>
                         <CardContent>
                           <DeviceLog deviceId={id?id:""} />
@@ -195,8 +288,8 @@ export default function DeviceDetailPage () {
                     <TabsContent value="schedule" className="mt-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-2xl font-semibold">Device Schedule</CardTitle>
-                          <CardDescription>Upcoming scheduled tasks for this device</CardDescription>
+                          <CardTitle className="text-2xl font-semibold">Lịch của thiết bị</CardTitle>
+                          <CardDescription>Các lịch sắp tới của thiết bị</CardDescription>
                         </CardHeader>
                         <CardContent>
                           <DeviceSchedule deviceId={id?id:""} />

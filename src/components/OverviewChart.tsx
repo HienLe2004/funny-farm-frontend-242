@@ -47,19 +47,14 @@ export default function OverviewChart () {
             client.on('message', (topic,message) => {
                 const feedKey:string = topic.split('/')[2].split('.')[1]
                 console.log(`Received message on topic ${feedKey} : ${message.toString()}`)
-                console.log(sensorValues[feedKey])
                 let values:Data[] = sensorValues[feedKey]
                 let newTime:string = (new Date()).toISOString()
                 if (values.length > 0 && new Date(newTime).getTime() - new Date(values[values.length - 1].time).getTime() > 2000) {
-                    console.log("Duplicate data");
+                    // console.log("Duplicate data");
                     values[values.length - 1].value = Number(message.toString())
                 }
                 else {
-                    console.log("New data" + values.length)
-                    if (values.length > 0) {
-                        console.log(values[values.length - 1]?.time.slice(0,20))
-                        console.log(values[values.length - 1]?.time.slice(0,20))
-                    }
+                    // console.log("New data" + values.length)
                     values.push({time: new Date().toISOString(),value:Number(message.toString())})
                 }
                 getTwentyFourHoursDeviceValues(feedKey)
@@ -103,7 +98,6 @@ export default function OverviewChart () {
             setTick((prev) => prev + 1)
         }, 1000);
         for (let i = 0; i < feedKeyList.length; i++) {
-            console.log(i)
             getTwentyFourHoursDeviceValues(feedKeyList[i])
         }
         connectAdafruitMQTT()
@@ -117,13 +111,13 @@ export default function OverviewChart () {
             <Tabs defaultValue="light" className="min-w-[700px]">
                 <TabsList className="grid grid-cols-7 mb-4">
                     {/* <TabsTrigger value="all">All</TabsTrigger> */}
-                    <TabsTrigger value="light">Light</TabsTrigger>
-                    <TabsTrigger value="humidity">Humidity</TabsTrigger>
-                    <TabsTrigger value="temperature">Temperature</TabsTrigger>
-                    <TabsTrigger value="soil-moisture">Soil moisture</TabsTrigger>
-                    <TabsTrigger value="pump1">Pump 1</TabsTrigger>
-                    <TabsTrigger value="pump2">Pump 2</TabsTrigger>
-                    <TabsTrigger value="fan">Fan</TabsTrigger>
+                    <TabsTrigger value="light">Ánh sáng</TabsTrigger>
+                    <TabsTrigger value="humidity">Độ ẩm kk</TabsTrigger>
+                    <TabsTrigger value="temperature">Nhiệt độ</TabsTrigger>
+                    <TabsTrigger value="soil-moisture">Độ ẩm đất</TabsTrigger>
+                    <TabsTrigger value="pump1">Bơm 1</TabsTrigger>
+                    <TabsTrigger value="pump2">Bơm 2</TabsTrigger>
+                    <TabsTrigger value="fan">Quạt</TabsTrigger>
                 </TabsList>
                 {/* <TabsContent value="all" className="h-[300px]">
                     <ChartContainer config={{
@@ -154,7 +148,6 @@ export default function OverviewChart () {
                                 <XAxis dataKey="time" tickMargin={8} minTickGap={32}
                                     tickFormatter={(value) => {
                                     const date = new Date(value)
-                                    console.log(value)
                                     return date.toLocaleTimeString("vi-VN", {
                                         hour: "numeric",
                                         minute: "numeric"
@@ -171,7 +164,7 @@ export default function OverviewChart () {
                                     })}} />
                                 }/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="value" stroke="var(--color-light)" activeDot={{ r: 8 }} name="Light (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-light)" activeDot={{ r: 8 }} name="Ánh sáng (%)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -199,7 +192,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="value" stroke="var(--color-humidity)" activeDot={{ r: 8 }} name="Humidity (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-humidity)" activeDot={{ r: 8 }} name="Độ ẩm không khí (%)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -227,7 +220,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="value" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Temperature (°C)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Nhiệt độ (°C)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -255,7 +248,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="monotone" dataKey="value" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Soil moisture (%)"/>
+                                <Line type="monotone" dataKey="value" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Độ ẩm đất (%)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -283,7 +276,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Pump 1 (On/Off)"/>
+                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Máy bơm 1 (Bật/Tắt)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -311,7 +304,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Pump 2 (On/Off)"/>
+                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Máy bơm 2 (Bật/Tắt)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>
@@ -339,7 +332,7 @@ export default function OverviewChart () {
                                     })
                                 }}/>}/>
                                 <Legend/>
-                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Fan (On/Off)"/>
+                                <Line type="stepAfter" dataKey="value" stroke="var(--color-value)" activeDot={{ r: 8 }} name="Quạt (Bật/Tắt)"/>
                             </LineChart>
                     </ChartContainer>
                 </TabsContent>

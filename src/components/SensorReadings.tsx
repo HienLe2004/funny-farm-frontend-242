@@ -95,28 +95,28 @@ export default function SensorReadings () {
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <Lightbulb className="h-5 w-5 text-yellow-500 mr-2"/>
-                    <span className="text-sm font-medium">Light</span>
+                    <span className="text-sm font-medium">Ánh sáng</span>
                 </div>
                 <div className="font-bold">{sensorValues.light}%</div>
             </div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <Droplet className="h-5 w-5 text-blue-500 mr-2"/>
-                    <span className="text-sm font-medium">Humid</span>
+                    <span className="text-sm font-medium">Độ ẩm không khí</span>
                 </div>
                 <div className="font-bold">{sensorValues.hum}%</div>
             </div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <Thermometer className="h-5 w-5 text-red-500 mr-2"/>
-                    <span className="text-sm font-medium">Temperature</span>
+                    <span className="text-sm font-medium">Nhiệt độ</span>
                 </div>
                 <div className="font-bold">{sensorValues.temp}°C</div>
             </div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <Droplets className="h-5 w-5 text-cyan-500 mr-2"/>
-                    <span className="text-sm font-medium">Soil moisture</span>
+                    <span className="text-sm font-medium">Độ ẩm đất</span>
                 </div>
                 <div className="font-bold">{sensorValues.soil}%</div>
             </div>

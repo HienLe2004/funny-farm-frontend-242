@@ -25,80 +25,80 @@ export default function SideBar() {
                         <Button variant={currentPath === "/" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/">
-                                <Home className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>{!collapsed && "Overview"}
+                                <Home className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>{!collapsed && "Tổng quan"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/schedule" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/schedule">
                                 <Calendar className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Schedule"}
+                                {!collapsed && "Lập lịch"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/analytics" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/analytics">
                                 <BarChart3 className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Analytics"}
+                                {!collapsed && "Thống kê"}
                             </Link>
                         </Button>
                     </div>
                 </div>
                 <div className="px-4 py-2">
-                    {!collapsed && <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Sensors</h2>}
+                    {!collapsed && <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Cảm biến</h2>}
                     <div className="space-y-1">
                         <Button variant={currentPath === "/devices/light-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/light-sensor">
                                 <Lightbulb className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Light sensor"}
+                                {!collapsed && "Ánh sáng"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/devices/humidity-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/humidity-sensor">
                                 <Droplet className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Humidity sensor"}
+                                {!collapsed && "Độ ẩm kk"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/devices/temperature-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/temperature-sensor">
                                 <Thermometer className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Temperature sensor"}
+                                {!collapsed && "Nhiệt độ"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/devices/soil-moisture-sensor" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/soil-moisture-sensor">
                                 <Droplets className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Soil moisture sensor"}
+                                {!collapsed && "Độ ẩm đất"}
                             </Link>
                         </Button>
                     </div>
                 </div>
                 <div className="px-4 py-2">
-                    {!collapsed && <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Devices</h2>}
+                    {!collapsed && <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Thiết bị điều khiển</h2>}
                     <div className="space-y-1">
                         <Button variant={currentPath === "/devices/pump-1" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/pump-1">
                                 <Gauge className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Pump 1"}
+                                {!collapsed && "Máy bơm 1"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/devices/pump-2" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/pump-2">
                                 <Gauge className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Pump 2"}
+                                {!collapsed && "Máy bơm 2"}
                             </Link>
                         </Button>
                         <Button variant={currentPath === "/devices/fan" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
                             <Link to="/devices/fan">
                                 <Fan className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
-                                {!collapsed && "Fan"}
+                                {!collapsed && "Quạt"}
                             </Link>
                         </Button>
                     </div>

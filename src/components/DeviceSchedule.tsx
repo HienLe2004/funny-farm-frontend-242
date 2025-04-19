@@ -49,7 +49,7 @@ export function DeviceSchedule({ deviceId }: { deviceId: string }) {
 
   if (!isActuator) {
     return (
-      <div className="text-center py-4 text-muted-foreground">Scheduling is only available for actuator devices</div>
+      <div className="text-center py-4 text-muted-foreground">Lập lịch chỉ dành cho thiết bị điều khiển</div>
     )
   }
 
