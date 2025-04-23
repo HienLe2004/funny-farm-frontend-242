@@ -55,8 +55,12 @@ export default function DeviceChart({ deviceId }: { deviceId: string }) {
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] = useState('da')
     useEffect(()=>{
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
         const getDeviceData = async () => {
             if (feedKey == "Value") {
                 return
@@ -64,7 +68,7 @@ export default function DeviceChart({ deviceId }: { deviceId: string }) {
             const apiUrl = 'https://io.adafruit.com/api/v2/'
             let currentDate = new Date()
             let sevenDaysAgo = new Date(currentDate.getTime() - (7 * 24 * 60 * 60 * 1000))
-            const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}/data`, {
+            const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKey}/data`, {
                 method: 'GET',
                 headers: {
                     'x-aio-key': userAIOUserkey

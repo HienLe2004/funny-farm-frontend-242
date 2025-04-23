@@ -16,11 +16,15 @@ export default function DeviceControls() {
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] =  useState('da')
+    const [groupKey, setGroupKey] =  useState("")
     const feedKeyList = ['pump1', 'pump2', 'fan']
 
     const handleSwitch = async (type:string, value:boolean)  => {
         console.log(`Switch ${type} ${value?1:0}`)
+        if (groupKey == "") {
+            console.log("MISSING GROUP KEY")
+            return
+        }
         if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
             console.log("INVALID KEY")
             return
@@ -42,6 +46,14 @@ export default function DeviceControls() {
     }
 
     useEffect(() => {
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
+        else {
+            setGroupKey(roomKey)
+        }
         if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
             console.log("INVALID KEY")
             return
@@ -55,7 +67,7 @@ export default function DeviceControls() {
             client.on('connect', () => {
                 console.log('Connected to Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
             client.on('message', (topic,message) => {
@@ -70,7 +82,7 @@ export default function DeviceControls() {
             client.on('disconnect', () => {
                 console.log('Disconneted from Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
         }
@@ -79,7 +91,7 @@ export default function DeviceControls() {
             const updatedDates = []
             let latestDate = new Date()
             for (let i = 0; i < feedKeyList.length; i++) {
-                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}/data/last`, {
+                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}/data/last`, {
                     method: 'GET',
                     headers: {
                         'x-aio-key': userAIOUserkey

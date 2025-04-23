@@ -25,7 +25,7 @@ export default function DeviceDetailPage () {
     }
     const [devices,setDevices] = useState({
       "light-sensor": {
-        name: "Cảm biến Ánh sáng",
+        name: "Cảm biến ánh sáng",
         unit: "%",
         type: "sensor",
         color: "text-yellow-500",
@@ -34,7 +34,7 @@ export default function DeviceDetailPage () {
         status: "active"
       },
       "humidity-sensor": {
-        name: "Cảm biến Độ ẩm không khí",
+        name: "Cảm biến độ ẩm không khí",
         unit: "%",
         type: "sensor",
         color: "text-blue-500",
@@ -95,9 +95,13 @@ export default function DeviceDetailPage () {
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] =  useState('da')
+    const [groupKey, setGroupKey] =  useState("")
     const [feedKey, setFeedKey] = useState(feedKeyList[id as keyof typeof feedKeyList])
     const handleClick = async () => {
+      if (groupKey == "") {
+        console.log("MISSING GROUP KEY")
+        return
+      }
       if (device.type == "sensor") {
         console.log("Can not turn on/off sensor")
         return
@@ -117,6 +121,14 @@ export default function DeviceDetailPage () {
       }
     }
     useEffect(()=>{
+      const roomKey = sessionStorage.getItem("roomKey")
+      if (!roomKey) {
+        console.log("MISSING GROUP KEY")
+        return
+      }
+      else {
+        setGroupKey(roomKey)
+      }
       if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
         console.log("INVALID KEY")
         return
@@ -129,7 +141,7 @@ export default function DeviceDetailPage () {
       const connectAdafruitMQTT = () => {
           client.on('connect', () => {
               console.log('Connected to Adafruit IO MQTT')
-              client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+              client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKey}`)
           })
           client.on('message', (topic,message) => {
               const feedKey = topic.split('/')[2].split('.')[1]
@@ -146,12 +158,12 @@ export default function DeviceDetailPage () {
           })
           client.on('disconnect', () => {
               console.log('Disconneted from Adafruit IO MQTT')
-              client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+              client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKey}`)
           })
       }
       const getDeviceData = async()=>{
         const apiUrl = 'https://io.adafruit.com/api/v2/'
-        const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}`)
+        const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKey}`)
         if (!response.ok) {
           console.log("HTTP ERROR! status " + response.status)
         } 

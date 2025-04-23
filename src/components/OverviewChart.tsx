@@ -24,10 +24,14 @@ export default function OverviewChart () {
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] = useState('da')
     const feedKeyList = ['light', 'hum', 'temp', 'soil', 'pump1', 'pump2', 'fan']
     
     useEffect(() => {
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
         if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
             console.log("INVALID KEY")
             return
@@ -41,7 +45,7 @@ export default function OverviewChart () {
             client.on('connect', () => {
                 console.log('Connected to Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
             client.on('message', (topic,message) => {
@@ -50,11 +54,9 @@ export default function OverviewChart () {
                 let values:Data[] = sensorValues[feedKey]
                 let newTime:string = (new Date()).toISOString()
                 if (values.length > 0 && new Date(newTime).getTime() - new Date(values[values.length - 1].time).getTime() > 2000) {
-                    // console.log("Duplicate data");
                     values[values.length - 1].value = Number(message.toString())
                 }
                 else {
-                    // console.log("New data" + values.length)
                     values.push({time: new Date().toISOString(),value:Number(message.toString())})
                 }
                 getTwentyFourHoursDeviceValues(feedKey)
@@ -65,7 +67,7 @@ export default function OverviewChart () {
             client.on('disconnect', () => {
                 console.log('Disconneted from Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
         }
@@ -73,7 +75,7 @@ export default function OverviewChart () {
             const apiUrl = 'https://io.adafruit.com/api/v2/'
             let currentDate = new Date()
             let twentyFourHoursAgo = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000))
-            const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKey}/data`, {
+            const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKey}/data`, {
                 method: 'GET',
                 headers: {
                     'x-aio-key': userAIOUserkey
@@ -119,26 +121,6 @@ export default function OverviewChart () {
                     <TabsTrigger value="pump2">Bơm 2</TabsTrigger>
                     <TabsTrigger value="fan">Quạt</TabsTrigger>
                 </TabsList>
-                {/* <TabsContent value="all" className="h-[300px]">
-                    <ChartContainer config={{
-                        light: {label: "Light", color: "#eab308"},
-                        humidity: {label: "Humidity", color: "#3b82f6"},
-                        temperature: {label: "Temperature", color: "#ef4444"},
-                        soil: {label: "Soil moisture", color: "#06b6d4"}
-                    }} className="h-full w-full">
-                            <LineChart data={data.all} margin={{top:5, right:30, left:10, bottom:5}}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="time"/>
-                                <YAxis/>
-                                <Tooltip content={<ChartTooltipContent/>}/>
-                                <Legend/>
-                                <Line type="monotone" dataKey="light" stroke="var(--color-light)" activeDot={{ r: 8 }} name="Light (%)"/>
-                                <Line type="monotone" dataKey="humidity" stroke="var(--color-humidity)" activeDot={{ r: 8 }} name="Humidity (%)"/>
-                                <Line type="monotone" dataKey="temperature" stroke="var(--color-temperature)" activeDot={{ r: 8 }} name="Temperature (°C)"/>
-                                <Line type="monotone" dataKey="soil" stroke="var(--color-soil)" activeDot={{ r: 8 }} name="Soil moisture (%)"/>
-                            </LineChart>
-                    </ChartContainer>
-                </TabsContent> */}
                 <TabsContent value="light" className="h-[300px]">
                     <ChartContainer config={{
                         light: {label: "Light", color: "#eab308"}

@@ -1,88 +1,219 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDistanceToNowStrict, parseISO } from "date-fns";
+import { vi } from "date-fns/locale";
 import { ArrowLeft, ArrowRight, Droplet, Droplets, Fan, Gauge, Lightbulb, Thermometer } from "lucide-react";
+import mqtt from "mqtt";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-// Device data
-const devices = [
-    {
-      id: "light-sensor",
-      name: "Light Sensor",
-      type: "sensor",
-      value: "75%",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      icon: Lightbulb,
-      color: "text-yellow-500",
-      bgColor: "bg-yellow-50",
-    },
-    {
-      id: "humidity-sensor",
-      name: "Humidity Sensor",
-      type: "sensor",
-      value: "58%",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      icon: Droplet,
-      color: "text-blue-500",
-      bgColor: "bg-blue-50",
-    },
-    {
-      id: "temperature-sensor",
-      name: "Temperature Sensor",
-      type: "sensor",
-      value: "23.5°C",
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      icon: Thermometer,
-      color: "text-red-500",
-      bgColor: "bg-red-50",
-    },
-    {
-      id: "soil-moisture-sensor",
-      name: "Soil Moisture Sensor",
-      type: "sensor",
-      value: "58%", 
-      status: "active",
-      lastUpdated: "2 minutes ago",
-      icon: Droplets,
-      color: "text-cyan-500",
-      bgColor: "bg-cyan-50",
-    },
-    {
-      id: "pump-1",
-      name: "Pump 1",
-      type: "actuator",
-      value: "Off",
-      status: "inactive",
-      lastUpdated: "15 minutes ago",
-      icon: Gauge,
-      color: "text-green-500",
-      bgColor: "bg-green-50",
-    },
-    {
-      id: "pump-2",
-      name: "Pump 2",
-      type: "actuator",
-      value: "Off",
-      status: "inactive",
-      lastUpdated: "1 hour ago",
-      icon: Gauge,
-      color: "text-green-500",
-      bgColor: "bg-green-50",
-    },
-    {
-      id: "fan",
-      name: "Fan",
-      type: "actuator",
-      value: "Off",
-      status: "inactive",
-      lastUpdated: "30 minutes ago",
-      icon: Fan,
-      color: "text-purple-500",
-      bgColor: "bg-purple-50",
-    },
-  ]
 export default function DevicesPage () {
+    const [tick,setTick] = useState(0)
+    const feedKeyList = {
+        'light-sensor':'light',
+        'humidity-sensor':'hum',
+        'temperature-sensor':'temp',
+        'soil-moisture-sensor':'soil',
+        'pump-1':'pump1',
+        'pump-2':'pump2',
+        'fan':'fan'
+    }
+    const staticDevices = {
+        "light":
+        {
+            name: "Cảm biến ánh sáng",
+            type: "sensor",
+            icon: Lightbulb,
+            unit: "%",
+            color: "text-yellow-500",
+            bgColor: "bg-yellow-50",
+        },
+        "hum":
+        {
+            name: "Cảm biến độ ẩm không khí",
+            type: "sensor",
+            icon: Droplet,
+            unit: "%",
+            color: "text-blue-500",
+            bgColor: "bg-blue-50",
+        },
+        "temp":
+        {
+            name: "Cảm biến nhiệt độ",
+            type: "sensor",
+            icon: Thermometer,
+            unit: "°C",
+            color: "text-red-500",
+            bgColor: "bg-red-50",
+        },
+        "soil":
+        {
+            name: "Cảm biến độ ẩm đất",
+            type: "sensor",
+            icon: Droplets,
+            unit: "%",
+            color: "text-cyan-500",
+            bgColor: "bg-cyan-50",
+        },
+        "pump1":
+        {
+            name: "Máy bơm 1",
+            type: "actuator",
+            icon: Gauge,
+            unit: "",
+            color: "text-green-500",
+            bgColor: "bg-green-50",
+        },
+        "pump2":
+        {
+            name: "Máy bơm 2",
+            type: "actuator",
+            icon: Gauge,
+            unit: "",
+            color: "text-green-500",
+            bgColor: "bg-green-50",
+        },
+        "fan":
+        {
+            name: "Quạt",
+            type: "actuator",
+            icon: Fan,
+            unit: "",
+            color: "text-purple-500",
+            bgColor: "bg-purple-50",
+        }
+    }
+    const [devices,setDevices] = useState({
+        "light":
+        {
+          id: "light-sensor",
+          value: "0",
+          status: "active",
+          lastUpdated: new Date(),
+        },
+        "hum":
+        {
+          id: "humidity-sensor",
+          value: "0",
+          status: "active",
+          lastUpdated: new Date(),
+        },
+        "temp":
+        {
+          id: "temperature-sensor",
+          value: "0",
+          status: "active",
+          lastUpdated: new Date(),
+        },
+        "soil":
+        {
+          id: "soil-moisture-sensor",
+          value: "0", 
+          status: "active",
+          lastUpdated: new Date(),
+        },
+        "pump1":
+        {
+          id: "pump-1",
+          value: "Off",
+          status: "inactive",
+          lastUpdated: new Date(),
+        },
+        "pump2":
+        {
+          id: "pump-2",
+          value: "Off",
+          status: "inactive",
+          lastUpdated: new Date(),
+        },
+        "fan":
+        {
+          id: "fan",
+          value: "Off",
+          status: "inactive",
+          lastUpdated: new Date(),
+        }
+    })
+    const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
+    const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
+    const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
+    useEffect(() => {
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
+        if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
+            console.log("INVALID KEY")
+            return
+        }
+        const mqttBrokerUrl = 'mqtt://io.adafruit.com'
+        const client = mqtt.connect(mqttBrokerUrl, {
+            username: userAIOUsername,
+            password: userAIOUserkey
+        })
+        const connectAdafruitMQTT = () => {
+            client.on('connect', () => {
+                console.log('Connected to Adafruit IO MQTT')
+                for (let i = 0; i < Object.keys(feedKeyList).length; i++) {
+                    const feedKey = feedKeyList[Object.keys(feedKeyList)[i] as keyof typeof feedKeyList] 
+                    client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKey}`)
+                }
+            })
+            client.on('message', (topic,message) => {
+                const feedKey:string = topic.split('/')[2].split('.')[1]
+                console.log(`Received message on topic ${feedKey} : ${message.toString()}`)
+                if (staticDevices[feedKey as keyof typeof staticDevices]['type'] == "actuator") {
+                    setDevices(prev => ({...prev, [feedKey]:{...[feedKey], value:message.toString(), lastUpdated:new Date(), status:message.toString()=="0"?"inactive":"active" }})) 
+                }
+                else {
+                    setDevices(prev => ({...prev, [feedKey]:{...[feedKey], value:message.toString(), lastUpdated:new Date(), status:"active" }})) 
+                }
+            })
+            client.on('error', (error) => {
+                console.log(`MQTT ERROR: ${error}`)
+            })
+            client.on('disconnect', () => {
+                console.log('Disconneted from Adafruit IO MQTT')
+                for (let i = 0; i < Object.keys(feedKeyList).length; i++) {
+                    const feedKey = feedKeyList[Object.keys(feedKeyList)[i] as keyof typeof feedKeyList] 
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKey}`)
+                }
+            })
+        }
+        async function getCurrentDeviceValues () {
+            const apiUrl = 'https://io.adafruit.com/api/v2/'
+            for (let i = 0; i < Object.keys(feedKeyList).length; i++) {
+                const feedKey = feedKeyList[Object.keys(feedKeyList)[i] as keyof typeof feedKeyList] 
+                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKey}/data/last`, {
+                    method: 'GET',
+                    headers: {
+                        'x-aio-key': userAIOUserkey
+                    }
+                })
+                if (!response.ok) {
+                    console.log(`HTTP ERROR! status ${response.status}`)
+                    return response.json()
+                }
+                const data = await response.json()
+                console.log(data)
+                if (staticDevices[feedKey as keyof typeof staticDevices]['type'] == "actuator") {
+                    setDevices(prev => ({...prev, [feedKey]:{...[feedKey], value:data['value'], lastUpdated:new Date(data['updated_at']), status:data['value']=="0"?"inactive":"active" }})) 
+                }
+                else {
+                    setDevices(prev => ({...prev, [feedKey]:{...[feedKey], value:data['value'], lastUpdated:new Date(data['updated_at']), status:"active" }})) 
+                }
+            }
+
+        }
+        const interval = setInterval(() => {
+            setTick((prev) => prev + 1)
+        }, 1000);
+        getCurrentDeviceValues()
+        connectAdafruitMQTT()
+        return () => {
+            clearInterval(interval); 
+        }
+    },[])
     return (
         <div className="flex min-h-screen w-full flex-col">
             <main className="flex-1">
@@ -96,20 +227,23 @@ export default function DevicesPage () {
                                 </Link>
                             </Button>
                             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-                                All Devices
+                                Tất cả thiết bị
                             </h1>
                         </div>
                         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {devices.map((device) => (
-                                <Card key={device.id} className="">
-                                    <CardHeader className={`${device.bgColor}`}>
+                            {Object.keys(devices)?.map((deviceKey) => {
+                                const device = devices[deviceKey as keyof typeof devices]
+                                const staticDevice = staticDevices[deviceKey as keyof typeof staticDevices]
+                                return(
+                                <Card key={deviceKey} className="">
+                                    <CardHeader className={`${staticDevice.bgColor}`}>
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <CardTitle className="flex items-center">
-                                                    <device.icon className={`h-5 w-5 ${device.color} mr-2`}/>
-                                                    {device.name}
+                                                <CardTitle className="flex items-center" key={deviceKey}>
+                                                    <staticDevice.icon className={`h-5 w-5 ${staticDevice.color} mr-2`}/>
+                                                    {staticDevice.name}
                                                 </CardTitle>
-                                                <CardDescription className="capitalize">{device.type}</CardDescription>
+                                                <CardDescription className="capitalize">{staticDevice.type}</CardDescription>
                                             </div>
                                             <div className={`px-2 py-1 rounded-full text-xs font-medium
                                              ${device.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
@@ -121,18 +255,18 @@ export default function DevicesPage () {
                                         <div className="flex justify-between items-center">
                                             <div>
                                                 <div className="text-sm font-medium text-muted-foreground">
-                                                    Current Value
+                                                    Giá trị hiện tại
                                                 </div>
                                                 <div className="text-2xl font-bold">
-                                                    {device.value}
+                                                    {device.value}{staticDevice.unit}
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-sm font-medium text-muted-foreground">
-                                                    Last Updated
+                                                    Cập nhật
                                                 </div>
                                                 <div className="text-sm">
-                                                    {device.lastUpdated}
+                                                    {formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true, locale: vi})}
                                                 </div>
                                             </div>
                                         </div>
@@ -140,13 +274,13 @@ export default function DevicesPage () {
                                     <CardFooter className="border-t p-4">
                                         <Button variant="ghost" className="w-full" asChild>
                                             <Link to={`/devices/${device.id}`}>
-                                                View Details
+                                                Chi tiết
                                                 <ArrowRight className="w-4 h-4 ml-2"/>
                                             </Link>
                                         </Button>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 </section>

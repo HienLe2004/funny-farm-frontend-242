@@ -5,11 +5,13 @@ import RootLayout from './pages/RootLayout'
 import DevicesPage from './pages/DevicesPage'
 import DeviceDetailPage from './pages/DeviceDetailPage'
 import SchedulePage from './pages/SchedulePage'
+import LoginPage from './pages/LoginPage'
 
 function App() {
   return (
     <div>
       <Routes>
+      <Route path="/login" element={<LoginPage/>}></Route>
       <Route path="/" element={<RootLayout><OverviewPage/></RootLayout>}></Route>
       <Route path="/devices" element={<RootLayout><DevicesPage/></RootLayout>}></Route>
       <Route path="/devices/:id" element={<RootLayout><DeviceDetailPage/></RootLayout>}></Route>
