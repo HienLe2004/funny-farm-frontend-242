@@ -55,7 +55,13 @@ const getDeviceColor = (device: string) => {
   if (device.includes("fan")) return "bg-purple-100 text-purple-800"
   return "bg-gray-100 text-gray-800"
 }
-
+// Get device Vietnamese name
+const getDeviceVName = (deviceKey: string) => {
+  if (deviceKey.includes("fan")) return "Quạt"
+  if (deviceKey.includes("1")) return "Máy bơm 1"
+  if (deviceKey.includes("2")) return "Máy bơm 2"
+  return "NULL"
+}
 // Custom calendar component
 const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selectedDate: Date; onSelectDate: (date: Date) => void; scheduleData: ScheduleData|any }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -95,11 +101,13 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
   // Navigate to previous month
   const prevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+    onSelectDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
   }
 
   // Navigate to next month
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+    onSelectDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
   }
 
   const days = generateCalendarDays()
@@ -148,7 +156,15 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
                   >
                     <div className="flex flex-col h-full">
                       <div className={`text-sm font-medium ${isToday ? "text-blue-600" : ""}`}>{day.getDate()}</div>
-                      <div className="flex-1 overflow-y-auto scrollbar-hide">
+                      
+                      {(dayTasks.length>0)&&<div className="mt-2">
+                        <div className="bg-blue-400 w-6 h-6 text-white text-xs flex justify-center items-center rounded-full text-center">
+                          {dayTasks.length}
+                        </div>
+                      </div>}
+
+                      
+                      {/* <div className="flex-1 overflow-y-auto scrollbar-hide">
                         {dayTasks.slice(0, 2).map((task:Task) => (
                           <div
                             key={task.id}
@@ -160,23 +176,23 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
                         {dayTasks.length > 2 && (
                           <div className="text-xs text-muted-foreground">+{dayTasks.length - 2} more</div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </button>
                 </TooltipTrigger>
                 {dayTasks.length > 0 && (
-                  <TooltipContent side="right" className="w-64 p-0">
-                    <div className="p-2 bg-popover text-red-500">
+                  <TooltipContent side="right" className=" p-0">
+                    <div className="p-2 bg-popover border-2 text-red-500">
                       <div className="font-medium mb-1">
                         {day.toLocaleDateString("vi-VN", { weekday: "short", month: "short", day: "numeric" })}
                       </div>
                       <div className="space-y-1">
                         {dayTasks.map((task:Task) => (
-                          <div key={task.id} className="flex justify-between text-sm">
+                          <div key={task.id} className="flex justify-between gap-2 text-sm">
                             <span
                               className={`font-medium ${task.deviceKey.includes("pump") ? "text-green-600" : "text-purple-600"}`}
                             >
-                              {task.deviceKey}
+                              {getDeviceVName(task.deviceKey)}
                             </span>
                             <span>
                               {task.startTime} - {task.endTime} - {task.name}
@@ -547,7 +563,7 @@ export default function SchedulePage() {
                             <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                               <div>
                                 <div className="font-medium">
-                                  {task.startTime} - {task.endTime} - {task.name} - {task.deviceKey}
+                                  {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
                                 </div>
                               </div>
                               <div className="flex space-x-2">
@@ -568,7 +584,7 @@ export default function SchedulePage() {
                               <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                                 <div>
                                   <div className="font-medium">
-                                    {task.startTime} - {task.endTime} - {task.name} - {task.deviceKey}
+                                    {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
                                 <div className="flex space-x-2">
@@ -589,7 +605,7 @@ export default function SchedulePage() {
                               <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                                 <div>
                                   <div className="font-medium">
-                                    {task.startTime} - {task.endTime} - {task.name} - {task.deviceKey}
+                                    {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
                                 <div className="flex space-x-2">

@@ -241,7 +241,7 @@ export default function DeviceDetailPage () {
                     </CardContent>
                   </Card>
     
-                  <Card className="md:col-span-2">
+                  {/* <Card className="md:col-span-2">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-2xl font-semibold">Thông tin khác</CardTitle>
                       <CardDescription>Thông tin khác về thiết bị</CardDescription>
@@ -278,7 +278,7 @@ export default function DeviceDetailPage () {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
+                  </Card> */}
                 </div>
     
                 <div className="mt-6">
