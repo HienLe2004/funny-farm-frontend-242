@@ -20,6 +20,7 @@ export default function DevicesPage () {
     const staticDevices = {
         "light":
         {
+            id: "light-sensor",
             name: "Cảm biến ánh sáng",
             type: "sensor",
             icon: Lightbulb,
@@ -29,6 +30,7 @@ export default function DevicesPage () {
         },
         "hum":
         {
+            id: "humidity-sensor",
             name: "Cảm biến độ ẩm không khí",
             type: "sensor",
             icon: Droplet,
@@ -38,6 +40,7 @@ export default function DevicesPage () {
         },
         "temp":
         {
+            id: "temperature-sensor",
             name: "Cảm biến nhiệt độ",
             type: "sensor",
             icon: Thermometer,
@@ -47,6 +50,7 @@ export default function DevicesPage () {
         },
         "soil":
         {
+            id: "soil-moisture-sensor",
             name: "Cảm biến độ ẩm đất",
             type: "sensor",
             icon: Droplets,
@@ -56,6 +60,7 @@ export default function DevicesPage () {
         },
         "pump1":
         {
+            id: "pump-1",
             name: "Máy bơm 1",
             type: "actuator",
             icon: Gauge,
@@ -65,6 +70,7 @@ export default function DevicesPage () {
         },
         "pump2":
         {
+            id: "pump-2",
             name: "Máy bơm 2",
             type: "actuator",
             icon: Gauge,
@@ -74,6 +80,7 @@ export default function DevicesPage () {
         },
         "fan":
         {
+            id: "fan",
             name: "Quạt",
             type: "actuator",
             icon: Fan,
@@ -195,7 +202,7 @@ export default function DevicesPage () {
                     return response.json()
                 }
                 const data = await response.json()
-                console.log(data)
+                // console.log(data)
                 if (staticDevices[feedKey as keyof typeof staticDevices]['type'] == "actuator") {
                     setDevices(prev => ({...prev, [feedKey]:{...[feedKey], value:data['value'], lastUpdated:new Date(data['updated_at']), status:data['value']=="0"?"inactive":"active" }})) 
                 }
@@ -209,7 +216,9 @@ export default function DevicesPage () {
             setTick((prev) => prev + 1)
         }, 1000);
         getCurrentDeviceValues()
-        connectAdafruitMQTT()
+        setTimeout(() => {
+            connectAdafruitMQTT()
+        }, 1000);
         return () => {
             clearInterval(interval); 
         }
@@ -273,7 +282,7 @@ export default function DevicesPage () {
                                     </CardContent>
                                     <CardFooter className="border-t p-4">
                                         <Button variant="ghost" className="w-full" asChild>
-                                            <Link to={`/devices/${device.id}`}>
+                                            <Link to={`/devices/${staticDevice.id}`}>
                                                 Chi tiết
                                                 <ArrowRight className="w-4 h-4 ml-2"/>
                                             </Link>
