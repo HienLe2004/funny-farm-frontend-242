@@ -224,7 +224,20 @@ type Task = {
   endTime: string;
   type: 'ONCE' | 'WEEKLY' | 'DAILY';
 };
+
 type MonthlyTasks = Task[];
+interface TaskForm {
+    deviceId:number,
+    feedId:number,
+    status:string,
+    description:string,
+    scheduleType:string,
+    startDate:string,
+    endDate:string,
+    startTime:string,
+    endTime:string,
+    weekDay:string
+}
 function generateMonthlyTasks(
   formattedSchedules: ScheduleItem[],
   year: number,
@@ -317,18 +330,24 @@ export default function SchedulePage() {
   const [date, setDate] = useState<Date>(new Date())
   const [open, setOpen] = useState(false)
   const [scheduleData, setScheduleDate] = useState<ScheduleData|any>()
-  const [scheduleForm, setScheduleForm] = useState({
+  const [taskForm, setTaskForm] = useState<TaskForm>({
     deviceId:0,
     feedId:0,
     status:"",
     description:"",
     scheduleType:"",
-    startDate:new Date(),
-    endDate:new Date(),
+    startDate:"",
+    endDate:"",
+    startTime:"",
+    endTime:"",
     weekDay:""
   })
   const navigate = useNavigate()
   const tasks = date ? getTasksForDate(date, scheduleData) : []
+  const createNewTask = async () => {
+    console.log(taskForm)
+    setOpen(false)
+  }
   useEffect(()=>{
     const roomKey = sessionStorage.getItem("roomKey")
     if (!roomKey) {
@@ -439,7 +458,8 @@ export default function SchedulePage() {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="grid gap-2">
                         <Label htmlFor="date">Ngày bắt đầu</Label>
-                        <Input id="date" type="date" defaultValue={date.toISOString().split("T")[0]} />
+                        <Input id="date" type="date" defaultValue={date.toISOString().split("T")[0]} 
+                          onChange={(e)=>setTaskForm((pre) => ({...pre, ['startDate']:""}))}/>
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="time">Từ</Label>
@@ -472,7 +492,7 @@ export default function SchedulePage() {
                     <Button variant="outline" onClick={() => setOpen(false)}>
                       Hủy
                     </Button>
-                    <Button onClick={() => setOpen(false)}>Lưu lịch</Button>
+                    <Button onClick={createNewTask}>Lưu lịch</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
