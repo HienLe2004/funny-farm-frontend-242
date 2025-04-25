@@ -3,7 +3,7 @@ import { BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, Lo
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/hooks/use-toast";
 export default function SideBar() {
     const location = useLocation();
     const currentPath = location.pathname

@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-
+import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+// import { useToast } from "@/components/hooks/use-toast"
 import { Link, useNavigate } from "react-router-dom"
 
 export default function LoginPage() {
@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast()
+  // const { toast } = useToast()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,28 +64,45 @@ export default function LoginPage() {
               sessionStorage.removeItem("roomKey")
             }
             navigate("/")
-            
-            toast({
-            title: "Login successful",
-            description: "Welcome back to Farm IoT Dashboard!",
-            })
-            navigate("/")
+            toast('Đăng nhập thành công', {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
         } else {
             console.log("Login failed")
             setEmail("")
             setPassword("")
-            toast({
-            variant: "destructive",
-            title: "Login failed",
-            description: "Invalid email or password. Please try again.",
-            })
+            toast('Sai tên tài khoản hoặc mật khẩu. Vui long thử lại.', {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
         }
         } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Login error",
-            description: "An error occurred during login. Please try again.",
-        })
+        toast('Lỗi đăng nhập. Vui lòng thử lại.', {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
         } finally {
         setIsLoading(false)
         }
@@ -177,6 +194,19 @@ export default function LoginPage() {
           <p className="mt-4 text-xs text-gray-500">Demo credentials: admin@example.com / password</p>
         </div>
       </div>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+        />
     </div>
   )
 }

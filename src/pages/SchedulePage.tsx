@@ -20,6 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Link, useNavigate } from "react-router-dom"
+import { format } from "date-fns"
+import { Bounce, toast, ToastContainer } from "react-toastify"
 
 // const scheduleData = [
 //   {
@@ -133,13 +135,11 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
           </div>
         ))}
       </div>
-
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => {
           if (!day) {
             return <div key={`empty-${index}`} className="h-24 p-1 bg-gray-50 rounded-md"></div>
           }
-
           const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString()
           const isToday = day.toDateString() === new Date().toDateString()
           const dayTasks = getTasksForDate(day, scheduleData)
@@ -162,8 +162,6 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
                           {dayTasks.length}
                         </div>
                       </div>}
-
-                      
                       {/* <div className="flex-1 overflow-y-auto scrollbar-hide">
                         {dayTasks.slice(0, 2).map((task:Task) => (
                           <div
@@ -245,6 +243,7 @@ type MonthlyTasks = Task[];
 interface TaskForm {
     deviceId:number,
     feedId:number,
+    feedKey:string,
     status:string,
     description:string,
     scheduleType:string,
@@ -259,7 +258,7 @@ function generateMonthlyTasks(
   year: number,
   month: number
 ): MonthlyTasks {
-  console.log("create task for " + year + " " + month)
+  // console.log("create task for " + year + " " + month)
   const firstDayOfMonth = new Date(year, month - 1, 1);
   const lastDayOfMonth = new Date(year, month, 1);
   const tasks: MonthlyTasks = [];
@@ -342,6 +341,16 @@ function createSchedule(tasks: Task[]): ScheduleData {
 
   return scheduleData;
 }
+function formatLocalDate(dateString: string) : string {
+  const parts = dateString.split('/');
+  if (parts.length === 3) {
+    const day = parts[0];
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    return `${year}-${month}-${day.padStart(2, '0')}`;
+  }
+  return '';
+}
 export default function SchedulePage() {
   const [date, setDate] = useState<Date>(new Date())
   const [open, setOpen] = useState(false)
@@ -349,21 +358,132 @@ export default function SchedulePage() {
   const [taskForm, setTaskForm] = useState<TaskForm>({
     deviceId:0,
     feedId:0,
-    status:"",
+    feedKey:"pump1",
+    status:"ACTIVE",
     description:"",
-    scheduleType:"",
+    scheduleType:"DAILY",
     startDate:"",
     endDate:"",
     startTime:"",
     endTime:"",
-    weekDay:""
+    weekDay:"MONDAY"
+  })
+  const [actuatorKeys, setActuatorKeys] = useState({
+    "pump1":{feedId:0, deviceId:0},
+    "pump2":{feedId:0, deviceId:0},
+    "fan":{feedId:0, deviceId:0}
   })
   const navigate = useNavigate()
   const tasks = date ? getTasksForDate(date, scheduleData) : []
   const createNewTask = async () => {
     console.log(taskForm)
+    const token = sessionStorage.getItem('accessToken')
+    let requestBody = {}
+    if (taskForm.scheduleType=="ONCE") {
+      requestBody = {
+        "id_device": taskForm.deviceId,
+        "feedId": taskForm.feedId,
+        "status": taskForm.status,
+        "description": taskForm.description,
+        "scheduleType": taskForm.scheduleType,
+        "startDate": taskForm.startDate,
+        "endDate": taskForm.endDate,
+        "time_from": taskForm.startTime,
+        "time_to": taskForm.endTime
+      }
+    }
+    else if (taskForm.scheduleType == "WEEKLY") {
+      requestBody = {
+        "id_device": taskForm.deviceId,
+        "feedId": taskForm.feedId,
+        "status": taskForm.status,
+        "description": taskForm.description,
+        "scheduleType": taskForm.scheduleType,
+        "weekDay": taskForm.weekDay,
+        "time_from": taskForm.startTime,
+        "time_to": taskForm.endTime
+      }
+    }
+    else if (taskForm.scheduleType == "DAILY") {
+      requestBody = {
+        "id_device": taskForm.deviceId,
+        "feedId": taskForm.feedId,
+        "status": taskForm.status,
+        "description": taskForm.description,
+        "scheduleType": taskForm.scheduleType,
+        "time_from": taskForm.startTime,
+        "time_to": taskForm.endTime
+      }
+    }
+    const response = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/schedule/create`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+    // console.log(requestBody)
+    // console.log(response)
+    toast(`Tạo lịch mới ${response.ok ? 'thành công' : 'thất bại'}!`, {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: true,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
     setOpen(false)
   }
+  useEffect(()=>{
+    const getDeviceList = async () => {
+      const roomId = sessionStorage.getItem("roomId")
+      if (!roomId) {
+          console.log("MISSING GROUP KEY")
+          return
+      }
+      const token = sessionStorage.getItem("accessToken")
+      if (!token) {
+        navigate("/login")
+        return
+      }
+      const roomResponse = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/devices/room/${roomId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const roomData = await roomResponse.json()
+      if (roomData.listDeviceDTO.length > 0) {
+        const deviceDataList = {
+          "pump1":{feedId:0, deviceId:0},
+          "pump2":{feedId:0, deviceId:0},
+          "fan":{feedId:0, deviceId:0}
+        }
+        const listDeviceDTO = roomData.listDeviceDTO
+        listDeviceDTO.map((deviceDTO:any) => {
+          if (deviceDTO.type == "CONTROL") {
+            const deviceFeedKey = Object.keys(deviceDTO.feedsList)[0]
+            Object.keys(deviceDataList).forEach((device) => {
+              if (deviceFeedKey.split(".")[1].includes(device)) {
+                deviceDataList[device as keyof typeof deviceDataList]['deviceId'] = deviceDTO.id
+                deviceDataList[device as keyof typeof deviceDataList]['feedId'] = deviceDTO.feedsList[deviceFeedKey].feedId
+              }
+            })
+          }
+        })
+        setActuatorKeys(deviceDataList)
+        setTaskForm(prev => ({...prev, ['deviceId']:deviceDataList.pump1.deviceId, ['feedId']:deviceDataList.pump1.feedId}))
+      }
+      else {
+        console.log("Room has no device")
+      }
+    }
+    getDeviceList()
+  },[])
   useEffect(()=>{
     const roomKey = sessionStorage.getItem("roomKey")
     if (!roomKey) {
@@ -385,7 +505,6 @@ export default function SchedulePage() {
       }
       const data = await response.json()
       const schedules = data.schedules
-      console.log(schedules)
       const formattedSchedules = schedules.map((schedule:any):ScheduleItem => ({
         "id":schedule.id,
         "feedId":schedule.feedId, 
@@ -401,10 +520,13 @@ export default function SchedulePage() {
       }))
       const allTasks = generateMonthlyTasks(formattedSchedules, date.getFullYear(), date.getMonth() + 1)
       setScheduleDate(createSchedule(allTasks));
-      // console.log(formattedSchedules)
     }
     getTasksForMonth()
   },[date.getMonth(), date.getFullYear()])
+  useEffect(() => {
+    setTaskForm(prev => ({...prev, ['startDate']:formatLocalDate(date.toLocaleDateString())}))
+  }, [date])
+  
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex-1">
@@ -434,8 +556,18 @@ export default function SchedulePage() {
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
+                      <Label htmlFor="description">Tên lịch</Label>
+                      <Input id="startTime" type="text" defaultValue={taskForm.description } onChange={(e) => {
+                        setTaskForm(prev => ({...prev, ['description']:e.target.value}))
+                      }}/>
+                    </div>
+                    <div className="grid gap-2">
                       <Label htmlFor="device">Thiết bị</Label>
-                      <Select>
+                      <Select defaultValue={taskForm.feedKey} onValueChange={(value:string) => {
+                        const deviceId = actuatorKeys[value as keyof typeof actuatorKeys].deviceId
+                        const feedId = actuatorKeys[value as keyof typeof actuatorKeys].feedId
+                        setTaskForm(prev => ({...prev, ['deviceId']:deviceId, ['feedId']:feedId, ['feedKey']:value}))
+                        }}>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn thiết bị" />
                         </SelectTrigger>
@@ -448,19 +580,21 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="action">Hành động</Label>
-                      <Select>
+                      <Select defaultValue={taskForm.status} onValueChange={(value) => {
+                        setTaskForm(prev => ({...prev, ['status']:value}))
+                      }}>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn hành động" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="on">Bật</SelectItem>
-                          <SelectItem value="off">Tắt</SelectItem>
+                          <SelectItem value="ACTIVE">Bật</SelectItem>
+                          <SelectItem value="INACTIVE">Tắt</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="action">Loại lịch</Label>
-                      <Select>
+                      <Select defaultValue={taskForm.scheduleType} onValueChange={(value)=>setTaskForm(prev => ({...prev, ['scheduleType']:value}))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn loại lịch" />
                         </SelectTrigger>
@@ -471,39 +605,58 @@ export default function SchedulePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="date">Ngày bắt đầu</Label>
-                        <Input id="date" type="date" defaultValue={date.toISOString().split("T")[0]} 
-                          onChange={(e)=>setTaskForm((pre) => ({...pre, ['startDate']:""}))}/>
+                        <Label htmlFor="startTime">Từ</Label>
+                        <Input id="startTime" type="time" defaultValue={taskForm.startTime} onChange={(e) => {
+                          setTaskForm((prev)=>({...prev,['startTime']:e.target.value}))
+                        }}/>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="time">Từ</Label>
-                        <Input id="time" type="time" />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="time">Đến</Label>
-                        <Input id="time" type="time" />
+                        <Label htmlFor="endTime">Đến</Label>
+                        <Input id="endTime" type="time" defaultValue={taskForm.endTime} onChange={(e) => {
+                          setTaskForm((prev)=>({...prev,['endTime']:e.target.value}))
+                        }}/>
                       </div>
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="action">Ngày trong tuần</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn ngày trong tuần" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="MONDAY">Thứ 2</SelectItem>
-                          <SelectItem value="TUESDAY">Thứ 3</SelectItem>
-                          <SelectItem value="WEDNESDAY">Thứ 4</SelectItem>
-                          <SelectItem value="THURSDAY">Thứ 5</SelectItem>
-                          <SelectItem value="FRIDAY">Thứ 6</SelectItem>
-                          <SelectItem value="SATURDAY">Thứ 7</SelectItem>
-                          <SelectItem value="SUNDAY">Chủ nhật</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                    {taskForm.scheduleType === "WEEKLY" && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="action">Ngày trong tuần</Label>
+                        <Select defaultValue={taskForm.weekDay} onValueChange={(value)=>{
+                          setTaskForm(prev=>({...prev,['weekDay']:value}))
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn ngày trong tuần" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="MONDAY">Thứ 2</SelectItem>
+                            <SelectItem value="TUESDAY">Thứ 3</SelectItem>
+                            <SelectItem value="WEDNESDAY">Thứ 4</SelectItem>
+                            <SelectItem value="THURSDAY">Thứ 5</SelectItem>
+                            <SelectItem value="FRIDAY">Thứ 6</SelectItem>
+                            <SelectItem value="SATURDAY">Thứ 7</SelectItem>
+                            <SelectItem value="SUNDAY">Chủ nhật</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {taskForm.scheduleType === "ONCE" && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="startDate">Ngày bắt đầu</Label>
+                          <Input id="startDate" type="date" defaultValue={formatLocalDate(date.toLocaleDateString())}
+                            onChange={(e) => {setTaskForm((prev) => ({...prev, ['startDate']:e.target.value}))}}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="endDate">Ngày kết thúc</Label>
+                          <Input id="endDate" type="date"
+                            onChange={(e) => {setTaskForm((prev) => ({...prev, ['endDate']:e.target.value}))}}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div> 
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setOpen(false)}>
                       Hủy
@@ -628,6 +781,19 @@ export default function SchedulePage() {
           </div>
         </section>
       </main>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+        />
     </div>
   )
 }
