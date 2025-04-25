@@ -1,12 +1,28 @@
 import { Button } from "@/components/ui/button"
-import { BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, PanelLeft, PanelLeftClose, Thermometer } from "lucide-react";
+import { BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, LogOut, PanelLeft, PanelLeftClose, Thermometer } from "lucide-react";
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { toast } from "@/hooks/use-toast";
 export default function SideBar() {
     const location = useLocation();
     const currentPath = location.pathname
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(false)
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        // Clear authentication data
+        sessionStorage.removeItem("accessToken")
+        sessionStorage.removeItem("roomId")
+        sessionStorage.removeItem("roomkey")
+    
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out of your account.",
+        })
+    
+        // Redirect to login page
+        navigate("/login")
+      }
     return (
         <div className={cn("relative min-h-screen border-r transition-all duration-300", collapsed ? "w-16" : "w-64")}>
             <Button variant="ghost" size="icon"
@@ -103,6 +119,19 @@ export default function SideBar() {
                         </Button>
                     </div>
                 </div>
+                <div className="absolute bottom-4 left-0 right-0 px-4">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full text-red-500 hover:text-red-600 hover:bg-red-50",
+              collapsed ? "justify-center px-2" : "justify-start",
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
+            {!collapsed && "Logout"}
+          </Button>
+        </div>
             </div>
         </div>
     )

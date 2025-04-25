@@ -317,6 +317,16 @@ export default function SchedulePage() {
   const [date, setDate] = useState<Date>(new Date())
   const [open, setOpen] = useState(false)
   const [scheduleData, setScheduleDate] = useState<ScheduleData|any>()
+  const [scheduleForm, setScheduleForm] = useState({
+    deviceId:0,
+    feedId:0,
+    status:"",
+    description:"",
+    scheduleType:"",
+    startDate:new Date(),
+    endDate:new Date(),
+    weekDay:""
+  })
   const navigate = useNavigate()
   const tasks = date ? getTasksForDate(date, scheduleData) : []
   useEffect(()=>{
@@ -413,29 +423,49 @@ export default function SchedulePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="action">Loại lịch</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn loại lịch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="DAILY">Hằng ngày</SelectItem>
+                          <SelectItem value="WEEKLY">Hằng tuần</SelectItem>
+                          <SelectItem value="ONCE">Một lần</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="date">Ngày</Label>
+                        <Label htmlFor="date">Ngày bắt đầu</Label>
                         <Input id="date" type="date" defaultValue={date.toISOString().split("T")[0]} />
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="time">Thời gian</Label>
+                        <Label htmlFor="time">Từ</Label>
+                        <Input id="time" type="time" />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="time">Đến</Label>
                         <Input id="time" type="time" />
                       </div>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Repeat</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                          <label
-                            key={day}
-                            className="flex items-center space-x-2 border rounded-md px-3 py-1 cursor-pointer hover:bg-muted"
-                          >
-                            <input type="checkbox" className="rounded" />
-                            <span>{day}</span>
-                          </label>
-                        ))}
-                      </div>
+                      <Label htmlFor="action">Ngày trong tuần</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn ngày trong tuần" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MONDAY">Thứ 2</SelectItem>
+                          <SelectItem value="TUESDAY">Thứ 3</SelectItem>
+                          <SelectItem value="WEDNESDAY">Thứ 4</SelectItem>
+                          <SelectItem value="THURSDAY">Thứ 5</SelectItem>
+                          <SelectItem value="FRIDAY">Thứ 6</SelectItem>
+                          <SelectItem value="SATURDAY">Thứ 7</SelectItem>
+                          <SelectItem value="SUNDAY">Chủ nhật</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <DialogFooter>
