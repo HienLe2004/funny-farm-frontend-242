@@ -9,11 +9,12 @@ import { vi } from "date-fns/locale";
 import { ArrowLeft, Calendar, Clock, History, Info } from "lucide-react"
 import mqtt from "mqtt";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 
 export default function DeviceDetailPage () {
     const {id} = useParams();
     const [tick,setTick] = useState(0)
+    const navigate = useNavigate()
     const feedKeyList = {
       'light-sensor':'light',
       'humidity-sensor':'hum',
@@ -88,6 +89,7 @@ export default function DeviceDetailPage () {
         status: "inactive"
       },
     })
+
     const [device,setDevice] = useState(devices[id as keyof typeof devices])
     if (!device) {
         return<>Not found</>
@@ -176,6 +178,7 @@ export default function DeviceDetailPage () {
         }
         // console.log(data)
       }
+      
       const interval = setInterval(() => {
         setTick(prev => prev + 1)
       }, 1000);
@@ -306,7 +309,7 @@ export default function DeviceDetailPage () {
                           <CardDescription>Hoạt động và sự kiện gần đây</CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <DeviceLog deviceId={id?id:""} />
+                          <DeviceLog deviceFeedKey={feedKey?feedKey:""} />
                         </CardContent>
                       </Card>
                     </TabsContent>
@@ -317,7 +320,7 @@ export default function DeviceDetailPage () {
                           <CardDescription>Các lịch sắp tới của thiết bị</CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <DeviceSchedule deviceId={id?id:""} />
+                          <DeviceSchedule deviceId={feedKey?feedKey:""} />
                         </CardContent>
                       </Card>
                     </TabsContent>
