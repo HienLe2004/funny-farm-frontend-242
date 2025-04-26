@@ -15,15 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
 
-// Sensor thresholds
-const thresholds = {
-  temperature: { min: 15, max: 25 },
-  humidity: { min: 40, max: 70 },
-  light: { min: 10, max: 90 },
-}
-
 // Generate analytics data for a specific day
-const generateAnalyticsData = (selectedDate:Date, sensorType:string) => {
+const generateAnalyticsData = (selectedDate:Date, sensorType:string, rawData:any[], sensorsData:any) => {
   if (!selectedDate) {
     return {
       data: [],
@@ -31,83 +24,28 @@ const generateAnalyticsData = (selectedDate:Date, sensorType:string) => {
       thresholdStatus: { belowMin: false, aboveMax: false },
     }
   }
-
-  // Seed random based on date and sensor type for consistent results
-  let seed = selectedDate.getTime() + sensorType.charCodeAt(0)
-  const random = () => {
-    const x = Math.sin(seed++) * 10000
-    return x - Math.floor(x)
-  }
-
-  // Generate data points
-  const data = []
-
-  // Generate data for each hour of the day with 5-minute intervals
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 5) {
-      // Add 1-3 data points per 5 minutes with random second offsets
-      const pointsPerSlot = Math.floor(random() * 3) + 1
-
-      for (let i = 0; i < pointsPerSlot; i++) {
-        const seconds = Math.floor(random() * 60)
-
-        // Create actual date object for this data point
-        const dataPointDate = new Date(selectedDate)
-        dataPointDate.setHours(hour, minute, seconds)
-
-        // Format for display in tooltip
-        const displayTime = format(dataPointDate, "HH:mm:ss")
-
-        // Time value in hours (decimal) for positioning on chart
-        const timeValue = hour + minute / 60 + seconds / 3600
-
-        // Generate value based on sensor type with more variation
-        let value:number = 0
-        if (sensorType === "temperature") {
-          // Temperature follows a sine wave pattern with daily cycles plus random noise
-          value = 15 + Math.sin((hour / 24) * Math.PI * 2) * 5 + (random() * 6 - 3)
-          // Add some micro-variations
-          value += Math.sin((minute / 60) * Math.PI) * 0.5
-        } else if (sensorType === "humidity") {
-          // Humidity is inversely related to temperature with more variation
-          value = 60 - Math.sin((hour / 24) * Math.PI * 2) * 15 + (random() * 12 - 6)
-          // Add some micro-variations
-          value += Math.sin((minute / 60) * Math.PI * 2) * 2
-        } else if (sensorType === "light") {
-          // Light follows daylight patterns with sharp day/night transitions
-          if (hour >= 6 && hour <= 18) {
-            // Daytime - bell curve with peak at noon
-            const hourFromNoon = Math.abs(hour - 12)
-            value = 80 - hourFromNoon * hourFromNoon * 2 + (random() * 20 - 10)
-            // Add cloud cover simulation
-            if (random() > 0.7) value *= 0.5 + random() * 0.3
-          } else {
-            // Nighttime - low light with occasional spikes
-            value = random() * 5 + (random() > 0.9 ? random() * 15 : 0)
-          }
-        }
-
-        // Ensure values are within reasonable ranges
-        if (sensorType === "temperature") {
-          value = Math.max(5, Math.min(35, value))
-        } else {
-          value = Math.max(0, Math.min(100, value))
-        }
-
-        data.push({
-          timeValue,
-          fullTimeValue: dataPointDate.getTime(),
-          displayTime,
-          value: Number.parseFloat(value.toFixed(1)),
-          hour,
-          minute,
-        })
-      }
-    }
-  }
+  const data:any[] = []
+  rawData.map((rd:any) => {
+    const hour = new Date(rd.timeStamp).getHours()
+    const minute = new Date(rd.timeStamp).getMinutes()
+    const seconds = new Date(rd.timeStamp).getSeconds()
+    const timeValue = hour + minute / 60 + seconds / 3600
+    const dataPointDate = new Date(selectedDate)
+    dataPointDate.setHours(hour, minute, seconds)
+    const displayTime = format(dataPointDate, "HH:mm:ss")
+    data.push({
+      timeValue,
+      fullTimeValue: dataPointDate.getTime(),
+      displayTime,
+      value: Number.parseFloat(rd.value.toFixed(1)),
+      hour,
+      minute,
+    })
+  })
+  
 
   // Sort by time value
-  data.sort((a, b) => a.timeValue - b.timeValue)
+  data.sort((a:any, b:any) => a.timeValue - b.timeValue)
 
   // Calculate analytics
   const values = data.map((d) => d.value)
@@ -116,10 +54,9 @@ const generateAnalyticsData = (selectedDate:Date, sensorType:string) => {
   const avg = Number.parseFloat((values.reduce((sum, val) => sum + val, 0) / values.length).toFixed(1))
 
   // Check thresholds
-  const threshold = thresholds[sensorType as keyof typeof thresholds]
-  const belowMin = min < threshold?.min
-  const aboveMax = max > threshold?.max
-
+  const belowMin = min < sensorsData[sensorType as keyof typeof sensorsData].threshold_min
+  const aboveMax = max > sensorsData[sensorType as keyof typeof sensorsData].threshold_max
+  console.log(data)
   return {
     data,
     analytics: { max, min, avg },
@@ -142,16 +79,19 @@ export default function StatisticsPage() {
   const [sensorType, setSensorType] = useState("temp")
   const [analyticsData, setAnalyticsData] = useState<any>(null)
   const [sensorFeedIds, setSensorFeedIds] = useState({
-    "light":0, "temp":0, "hum":0, "soil":0, "ready":0
+    "light":{feedId:0,threshold_min:0,threshold_max:0},
+    "temp":{feedId:0,threshold_min:0,threshold_max:0},
+    "hum":{feedId:0,threshold_min:0,threshold_max:0},
+    "soil":{feedId:0,threshold_min:0,threshold_max:0},
+    "ready":{feedId:0,threshold_min:0,threshold_max:0}
   })
+  const [minValue, setMinValue] = useState(0)
+  const [maxValue, setMaxValue] = useState(0)
+  const [averageValue, setAverageValue] = useState(0)
   const navigate = useNavigate()
   useEffect(()=>{
   },[])
   useEffect(() => {
-    if (selectedDate) {
-      const data = generateAnalyticsData(selectedDate, sensorType)
-      setAnalyticsData(data)
-    }
     const token = sessionStorage.getItem("accessToken")
     if (!token) {
       navigate("/login")
@@ -176,7 +116,7 @@ export default function StatisticsPage() {
       const roomData = await roomResponse.json()
       if (roomData.listDeviceDTO.length > 0) {
         const deviceDataList = {
-          "light":0, "temp":0, "hum":0, "soil":0, "ready":0
+          "light":{feedId:0,threshold_min:0,threshold_max:0}, "temp":{feedId:0,threshold_min:0,threshold_max:0}, "hum":{feedId:0,threshold_min:0,threshold_max:0}, "soil":{feedId:0,threshold_min:0,threshold_max:0}, "ready":{feedId:0,threshold_min:0,threshold_max:0}
         }
         const listDeviceDTO = roomData.listDeviceDTO
         listDeviceDTO.map((deviceDTO:any) => {
@@ -184,12 +124,16 @@ export default function StatisticsPage() {
             const deviceFeedKey = Object.keys(deviceDTO.feedsList)[0]
             Object.keys(deviceDataList).forEach((device) => {
               if (deviceFeedKey.split(".")[1].includes(device)) {
-                deviceDataList[device as keyof typeof deviceDataList] = deviceDTO.feedsList[deviceFeedKey].feedId
+                deviceDataList[device as keyof typeof deviceDataList] = {
+                  "feedId": deviceDTO.feedsList[deviceFeedKey].feedId,
+                  "threshold_max": deviceDTO.feedsList[deviceFeedKey].threshold_max,
+                  "threshold_min": deviceDTO.feedsList[deviceFeedKey].threshold_min,
+                }
               }
             })
           }
         })
-        deviceDataList.ready = 1
+        deviceDataList.ready.feedId = 1
         setSensorFeedIds(deviceDataList)
       }
       else {
@@ -197,10 +141,10 @@ export default function StatisticsPage() {
       }
     }
     const getSensorStatisticData = async()=>{
-      if (sensorFeedIds.ready == 0) {
+      if (sensorFeedIds.ready.feedId == 0) {
         return;
       }
-      const response = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/statistic?feedId=${sensorFeedIds[sensorType as keyof typeof sensorFeedIds]}&date=${formatLocalDate(selectedDate.toLocaleDateString())}`,{
+      const response = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/statistic?feedId=${sensorFeedIds[sensorType as keyof typeof sensorFeedIds].feedId}&date=${formatLocalDate(selectedDate.toLocaleDateString())}`,{
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -213,17 +157,18 @@ export default function StatisticsPage() {
       console.log(response)
       const data = await response.json()
       console.log(data)
+      const anData = generateAnalyticsData(selectedDate, sensorType, data.data, sensorFeedIds)
+      setAnalyticsData(anData)
     }
     getDeviceList()
-    getSensorStatisticData()
-  }, [selectedDate, sensorType, sensorFeedIds.ready])
-  
-  
+    if (selectedDate) {
+      getSensorStatisticData()
+    }
+  }, [selectedDate, sensorType, sensorFeedIds.ready.feedId])
   // Navigate to previous day
   const goToPreviousDay = () => {
     setSelectedDate((prevDate) => subDays(prevDate, 1))
   }
-
   // Navigate to next day (but not beyond today)
   const goToNextDay = () => {
     const nextDay = addDays(selectedDate, 1)
@@ -294,9 +239,10 @@ export default function StatisticsPage() {
                         <SelectValue placeholder="Select sensor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="temperature">Temperature</SelectItem>
-                        <SelectItem value="humidity">Humidity</SelectItem>
-                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="temp">Nhiệt độ</SelectItem>
+                        <SelectItem value="hum">Độ ẩm không khí</SelectItem>
+                        <SelectItem value="light">Ánh sáng</SelectItem>
+                        <SelectItem value="soil">Độ ẩm đất</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -332,17 +278,15 @@ export default function StatisticsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto h-[300px]">
-                    <div className="w-min-[700px] md:w-full">
+                  <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto h-[300px] ">
                     <AnalyticsChart
                       data={data}
                       ticks={ticks}
                       sensorType={sensorType}
-                      thresholds={thresholds[sensorType as keyof typeof thresholds]}
+                      thresholds={{max:sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_max,min:sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_max}}
                       dateRange={null}
                       isSingleDay={true}
                       />
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -359,19 +303,19 @@ export default function StatisticsPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Giá trị Max:</span>
                       <span className="font-bold">
-                        {analytics.max} {sensorType === "temperature" ? "°C" : "%"}
+                        {analytics.max} {sensorType === "temp" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Giá trị Min:</span>
                       <span className="font-bold">
-                        {analytics.min} {sensorType === "temperature" ? "°C" : "%"}
+                        {analytics.min} {sensorType === "temp" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Giá trị trung bình:</span>
                       <span className="font-bold">
-                        {analytics.avg} {sensorType === "temperature" ? "°C" : "%"}
+                        {analytics.avg} {sensorType === "temp" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -415,13 +359,13 @@ export default function StatisticsPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Ngưỡng dưới:</span>
                       <span className="font-bold">
-                        {thresholds[sensorType as keyof typeof thresholds]?.min} {sensorType === "temperature" ? "°C" : "%"}
+                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_min} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Ngưỡng trên:</span>
                       <span className="font-bold">
-                        {thresholds[sensorType as keyof typeof thresholds]?.max} {sensorType === "temperature" ? "°C" : "%"}
+                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_max} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="pt-2">
@@ -432,45 +376,6 @@ export default function StatisticsPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* <Card>
-                <CardHeader>
-                  <CardTitle>Alerts</CardTitle>
-                  <CardDescription>Threshold violations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {thresholdStatus.belowMin || thresholdStatus.aboveMax ? (
-                    <div className="space-y-4">
-                      {thresholdStatus.belowMin && (
-                        <Alert variant="destructive" className="bg-blue-50 text-blue-800 border-blue-200">
-                          <AlertTitle className="flex items-center">
-                            Low {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} Alert
-                          </AlertTitle>
-                          <AlertDescription>
-                            {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} dropped below minimum threshold
-                            of {thresholds[sensorType as keyof typeof thresholds].min} {sensorType === "temperature" ? "°C" : "%"}.
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                      {thresholdStatus.aboveMax && (
-                        <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
-                          <AlertTitle className="flex items-center">
-                            High {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} Alert
-                          </AlertTitle>
-                          <AlertDescription>
-                            {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} exceeded maximum threshold of{" "}
-                            {thresholds[sensorType as keyof typeof thresholds].max} {sensorType === "temperature" ? "°C" : "%"}.
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-24 text-muted-foreground">
-                      No alerts for this period
-                    </div>
-                  )}
-                </CardContent>
-              </Card> */}
             </div>
           </div>
         </section>

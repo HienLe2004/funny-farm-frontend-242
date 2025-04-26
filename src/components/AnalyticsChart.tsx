@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import {
   LineChart,
   Line,
@@ -27,7 +28,7 @@ const CustomTooltip = ({ active, payload, label, sensorType, isSingleDay } : Cus
   if (active && payload && payload.length) {
     // Get the display time from the data point
     const displayTime = payload[0].payload.displayTime
-    const unit = sensorType === "temperature" ? "°C" : "%"
+    const unit = sensorType === "temp" ? "°C" : "%"
 
     return (
       <div className="rounded-lg border bg-background p-2 shadow-sm">
@@ -49,26 +50,28 @@ const CustomTooltip = ({ active, payload, label, sensorType, isSingleDay } : Cus
 
 // Get color based on sensor type
 const getSensorColor = (sensorType:string|any) => {
-  if (sensorType === "temperature") return "#ef4444"
-  if (sensorType === "humidity") return "#3b82f6"
+  if (sensorType === "temp") return "#ef4444"
+  if (sensorType === "hum") return "#3b82f6"
   if (sensorType === "light") return "#eab308"
   return "#64748b"
 }
 interface CustomTooltipProps extends TooltipProps<number, string> {
-  sensorType: "temperature" | "humidity" | "light" | string;
+  sensorType: "temp" | "hum" | "light" | "soil" | string;
   isSingleDay?: boolean;
 }
 export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange, isSingleDay = false } : {
     data:any, ticks:any, sensorType:any, thresholds:any, dateRange:any, isSingleDay:any
 }) {
   const color = getSensorColor(sensorType)
-  const unit = sensorType === "temperature" ? "°C" : "%"
+  const unit = sensorType === "temp" ? "°C" : "%"
 
   // Calculate domain for X axis
-  const xDomain = isSingleDay ? [0, 24] : [0, 24] // Default to 24 hours for single day
-
+  const xDomain = isSingleDay ? [0, 24] : [0, 24]
+  useEffect(()=>{
+    console.log(sensorType)
+  })
   return (
-    <ResponsiveContainer height="100%" width="100%">
+    <ResponsiveContainer height="100%" width="100%" >
       <LineChart
         data={data}
         margin={{
@@ -78,7 +81,7 @@ export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange,
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid strokeDasharray="3 3"/>
         <XAxis
           dataKey="timeValue"
           ticks={ticks}
@@ -86,22 +89,24 @@ export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange,
           type="number"
           domain={xDomain}
           allowDataOverflow
-          label={{ value: "Time (hours)", position: "insideBottomRight", offset: -5 }}
+          label={{ value: "Thời gian (giờ)", position: "insideBottomRight", offset: -5 }}
         />
         <YAxis
           domain={["auto", "auto"]}
-          tickFormatter={(value) => `${value}${sensorType === "temperature" ? "°" : "%"}`}
+          tickFormatter={(value) => `${value}`}
           label={{
             value:
-              sensorType === "temperature"
-                ? "Temperature (°C)"
-                : sensorType === "humidity"
-                  ? "Humidity (%)"
-                  : "Light (%)",
+              sensorType === "temp"
+                ? "Nhiệt độ (°C)"
+                : sensorType === "hum"
+                  ? "Độ ẩm không khí (%)"
+                  :sensorType === "light"
+                    ?"Ánh sáng (%)":"Độ ẩm đất (%)",
             angle: -90,
             position: "insideLeft",
             style: { textAnchor: "middle" },
           }}
+          padding={{ top: 1 }}
         />
         <Tooltip content={(props) => <CustomTooltip {...props as CustomTooltipProps}  sensorType={sensorType} isSingleDay={isSingleDay} />} />
         <Legend />
