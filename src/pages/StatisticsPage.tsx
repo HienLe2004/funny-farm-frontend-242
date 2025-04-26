@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Download, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { format, addDays, subDays, isSameDay } from "date-fns"
 
 import { Button } from "@/components/ui/button"
@@ -11,10 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnalyticsChart } from "@/components/AnalyticsChart"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 // Sensor thresholds
 const thresholds = {
@@ -118,8 +117,8 @@ const generateAnalyticsData = (selectedDate:Date, sensorType:string) => {
 
   // Check thresholds
   const threshold = thresholds[sensorType as keyof typeof thresholds]
-  const belowMin = min < threshold.min
-  const aboveMax = max > threshold.max
+  const belowMin = min < threshold?.min
+  const aboveMax = max > threshold?.max
 
   return {
     data,
@@ -127,21 +126,98 @@ const generateAnalyticsData = (selectedDate:Date, sensorType:string) => {
     thresholdStatus: { belowMin, aboveMax },
   }
 }
-
-export default function AnalyticsPage() {
+function formatLocalDate(dateString: string) : string {
+  const parts = dateString.split('/');
+  if (parts.length === 3) {
+    const day = parts[0];
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    return `${year}-${month}-${day.padStart(2, '0')}`;
+  }
+  return '';
+}
+export default function StatisticsPage() {
   // Initialize with today's date
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [sensorType, setSensorType] = useState("temperature")
+  const [sensorType, setSensorType] = useState("temp")
   const [analyticsData, setAnalyticsData] = useState<any>(null)
-
-  // Generate data based on selected date and sensor type
+  const [sensorFeedIds, setSensorFeedIds] = useState({
+    "light":0, "temp":0, "hum":0, "soil":0, "ready":0
+  })
+  const navigate = useNavigate()
+  useEffect(()=>{
+  },[])
   useEffect(() => {
     if (selectedDate) {
       const data = generateAnalyticsData(selectedDate, sensorType)
       setAnalyticsData(data)
     }
-  }, [selectedDate, sensorType])
-
+    const token = sessionStorage.getItem("accessToken")
+    if (!token) {
+      navigate("/login")
+      return
+    }
+    const roomId = sessionStorage.getItem("roomId")
+    if (!roomId) {
+        console.log("MISSING GROUP KEY")
+        return
+    }
+    const getDeviceList = async () => {
+      const roomResponse = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/devices/room/${roomId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!roomResponse.ok && roomResponse.status == 401) {
+        navigate("/login")
+        return
+      }
+      const roomData = await roomResponse.json()
+      if (roomData.listDeviceDTO.length > 0) {
+        const deviceDataList = {
+          "light":0, "temp":0, "hum":0, "soil":0, "ready":0
+        }
+        const listDeviceDTO = roomData.listDeviceDTO
+        listDeviceDTO.map((deviceDTO:any) => {
+          if (deviceDTO.type == "SENSOR") {
+            const deviceFeedKey = Object.keys(deviceDTO.feedsList)[0]
+            Object.keys(deviceDataList).forEach((device) => {
+              if (deviceFeedKey.split(".")[1].includes(device)) {
+                deviceDataList[device as keyof typeof deviceDataList] = deviceDTO.feedsList[deviceFeedKey].feedId
+              }
+            })
+          }
+        })
+        deviceDataList.ready = 1
+        setSensorFeedIds(deviceDataList)
+      }
+      else {
+        console.log("Room has no device")
+      }
+    }
+    const getSensorStatisticData = async()=>{
+      if (sensorFeedIds.ready == 0) {
+        return;
+      }
+      const response = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/statistic?feedId=${sensorFeedIds[sensorType as keyof typeof sensorFeedIds]}&date=${formatLocalDate(selectedDate.toLocaleDateString())}`,{
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!response.ok && response.status == 401) {
+        navigate("/login")
+        return
+      }
+      const data = await response.json()
+      console.log(data)
+    }
+    getDeviceList()
+    getSensorStatisticData()
+  }, [selectedDate, sensorType, sensorFeedIds.ready])
+  
+  
   // Navigate to previous day
   const goToPreviousDay = () => {
     setSelectedDate((prevDate) => subDays(prevDate, 1))
@@ -164,7 +240,12 @@ export default function AnalyticsPage() {
   }
 
   // Format selected date for display
-  const formattedDate = selectedDate ? format(selectedDate, "EEEE, MMMM d, yyyy") : "Select a date"
+  const formattedDate = selectedDate ? selectedDate.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }) : "Select a date"
 
   // Format date for input value
   const inputDateValue = selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""
@@ -177,7 +258,7 @@ export default function AnalyticsPage() {
   const ticks = generateTicks()
 
   if (!analyticsData) {
-    return <div className="flex min-h-screen items-center justify-center">Loading analytics data...</div>
+    return <div className="flex min-h-screen items-center justify-center">Đang tải dữ liệu...</div>
   }
 
   const { data, analytics, thresholdStatus } = analyticsData
@@ -195,13 +276,7 @@ export default function AnalyticsPage() {
                     <span className="sr-only">Back</span>
                   </Link>
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Analytics</h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Data
-                </Button>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Thống kê</h1>
               </div>
             </div>
 
@@ -209,8 +284,8 @@ export default function AnalyticsPage() {
               <Card className="md:col-span-3">
                 <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
                   <div>
-                    <CardTitle>Daily Sensor Data</CardTitle>
-                    <CardDescription>Detailed hourly analytics</CardDescription>
+                    <CardTitle>Dữ liệu cảm biến trong ngày</CardTitle>
+                    <CardDescription>Thống kê chi tiết trong trong ngày</CardDescription>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                     <Select value={sensorType} onValueChange={setSensorType}>
@@ -238,7 +313,7 @@ export default function AnalyticsPage() {
                           type="date"
                           value={inputDateValue}
                           onChange={handleDateChange}
-                          max={format(new Date(), "yyyy-MM-dd")}
+                          max={new Date().toLocaleDateString()}
                           className="w-[160px]"
                         />
                       </div>
@@ -256,7 +331,8 @@ export default function AnalyticsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[300px] w-full">
+                  <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto h-[300px]">
+                    <div className="w-min-[700px] md:w-full">
                     <AnalyticsChart
                       data={data}
                       ticks={ticks}
@@ -264,59 +340,60 @@ export default function AnalyticsPage() {
                       thresholds={thresholds[sensorType as keyof typeof thresholds]}
                       dateRange={null}
                       isSingleDay={true}
-                    />
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-3">
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Summary</CardTitle>
+                  <CardTitle>Tổng quan trong ngày</CardTitle>
                   <CardDescription>{formattedDate}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Maximum Value:</span>
+                      <span className="font-medium">Giá trị Max:</span>
                       <span className="font-bold">
                         {analytics.max} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Minimum Value:</span>
+                      <span className="font-medium">Giá trị Min:</span>
                       <span className="font-bold">
                         {analytics.min} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Average Value:</span>
+                      <span className="font-medium">Giá trị trung bình:</span>
                       <span className="font-bold">
                         {analytics.avg} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Data Points:</span>
+                      <span className="font-medium">Số điểm dữ liệu:</span>
                       <span className="font-bold">{data.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Threshold Status:</span>
+                      <span className="font-medium">Trạng thái vượt ngưỡng:</span>
                       <div className="flex gap-2">
                         {!thresholdStatus.belowMin && !thresholdStatus.aboveMax ? (
                           <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-                            Normal
+                            Bình thường
                           </Badge>
                         ) : (
                           <>
                             {thresholdStatus.belowMin && (
                               <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                                Below Min
+                                Dưới Min
                               </Badge>
                             )}
                             {thresholdStatus.aboveMax && (
                               <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100">
-                                Above Max
+                                Trên Max
                               </Badge>
                             )}
                           </>
@@ -329,33 +406,33 @@ export default function AnalyticsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Threshold Settings</CardTitle>
-                  <CardDescription>Current threshold configuration</CardDescription>
+                  <CardTitle>Cấu hình ngưỡng</CardTitle>
+                  <CardDescription>Cấu hình ngưỡng hiện tại</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Lower Threshold:</span>
+                      <span className="font-medium">Ngưỡng dưới:</span>
                       <span className="font-bold">
-                        {thresholds[sensorType as keyof typeof thresholds].min} {sensorType === "temperature" ? "°C" : "%"}
+                        {thresholds[sensorType as keyof typeof thresholds]?.min} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Upper Threshold:</span>
+                      <span className="font-medium">Ngưỡng trên:</span>
                       <span className="font-bold">
-                        {thresholds[sensorType as keyof typeof thresholds].max} {sensorType === "temperature" ? "°C" : "%"}
+                        {thresholds[sensorType as keyof typeof thresholds]?.max} {sensorType === "temperature" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="pt-2">
                       <Button variant="outline" className="w-full">
-                        Configure Thresholds
+                        Cấu hình các ngưỡng
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Alerts</CardTitle>
                   <CardDescription>Threshold violations</CardDescription>
@@ -392,7 +469,7 @@ export default function AnalyticsPage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </section>

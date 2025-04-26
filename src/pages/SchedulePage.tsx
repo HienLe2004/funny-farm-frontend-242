@@ -477,7 +477,7 @@ export default function SchedulePage() {
       }
     }
     getDeviceList()
-  },[ticks])
+  },[])
   useEffect(()=>{
     const roomKey = sessionStorage.getItem("roomKey")
     if (!roomKey) {
@@ -534,7 +534,7 @@ export default function SchedulePage() {
                     <span className="sr-only">Back</span>
                   </Link>
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Lập lịch {ticks}</h1>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Lập lịch</h1>
               </div>
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -685,7 +685,7 @@ export default function SchedulePage() {
                       : "Chưa ngày nào được chọn"}
                   </CardTitle>
                   <CardDescription>
-                    {tasks.length} {/*tasks.length === 1 ? "task" : "tasks"*/} lịch
+                    {tasks.length} lịch
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

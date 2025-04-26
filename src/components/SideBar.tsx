@@ -53,7 +53,7 @@ export default function SideBar() {
                         </Button>
                         <Button variant={currentPath === "/analytics" ? "default":"ghost"} asChild
                         className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
-                            <Link to="/analytics">
+                            <Link to="/statistics">
                                 <BarChart3 className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
                                 {!collapsed && "Thống kê"}
                             </Link>

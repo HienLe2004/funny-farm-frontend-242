@@ -96,8 +96,8 @@ export default function DeviceChart({ deviceId }: { deviceId: string }) {
         setFeedKey(getFeedKey(deviceId))
     },[deviceId])
 return (
-    <div className="h-[300px] w-full">
-    <ChartContainer config={{light: {label: "Light", color: "#eab308"}}} className="h-full w-full">
+    <div className="w-[calc(100vw_-_160px)] md:w-full overflow-auto">
+    <ChartContainer config={{light: {label: "Light", color: "#eab308"}}} className="h-[300px] w-min-[700px] md:w-full">
         <LineChart
         data={deviceData}
         margin={{

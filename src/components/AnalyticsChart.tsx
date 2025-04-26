@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  TooltipProps,
 } from "recharts"
 
 // Format time for x-axis ticks
@@ -22,9 +23,7 @@ const formatXAxisTick = (tickValue:number, isSingleDay:Date) => {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, sensorType, isSingleDay } : {
-    active:any, payload:any, label:any, sensorType:any, isSingleDay:any
-}) => {
+const CustomTooltip = ({ active, payload, label, sensorType, isSingleDay } : CustomTooltipProps) => {
   if (active && payload && payload.length) {
     // Get the display time from the data point
     const displayTime = payload[0].payload.displayTime
@@ -55,7 +54,10 @@ const getSensorColor = (sensorType:string|any) => {
   if (sensorType === "light") return "#eab308"
   return "#64748b"
 }
-
+interface CustomTooltipProps extends TooltipProps<number, string> {
+  sensorType: "temperature" | "humidity" | "light" | string;
+  isSingleDay?: boolean;
+}
 export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange, isSingleDay = false } : {
     data:any, ticks:any, sensorType:any, thresholds:any, dateRange:any, isSingleDay:any
 }) {
@@ -66,7 +68,7 @@ export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange,
   const xDomain = isSingleDay ? [0, 24] : [0, 24] // Default to 24 hours for single day
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer height="100%" width="100%">
       <LineChart
         data={data}
         margin={{
@@ -101,19 +103,19 @@ export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange,
             style: { textAnchor: "middle" },
           }}
         />
-        <Tooltip content={(props) => <CustomTooltip {...props} active={true} payload={1} label="" sensorType={sensorType} isSingleDay={isSingleDay} />} />
+        <Tooltip content={(props) => <CustomTooltip {...props as CustomTooltipProps}  sensorType={sensorType} isSingleDay={isSingleDay} />} />
         <Legend />
         <ReferenceLine
-          y={thresholds.min}
+          y={thresholds?.min}
           stroke="#3b82f6"
           strokeDasharray="3 3"
-          label={{ value: `Min: ${thresholds.min}${unit}`, fill: "#3b82f6", position: "insideBottomLeft" }}
+          label={{ value: `Min: ${thresholds?.min}${unit}`, fill: "#3b82f6", position: "insideBottomLeft" }}
         />
         <ReferenceLine
-          y={thresholds.max}
+          y={thresholds?.max}
           stroke="#ef4444"
           strokeDasharray="3 3"
-          label={{ value: `Max: ${thresholds.max}${unit}`, fill: "#ef4444", position: "insideTopLeft" }}
+          label={{ value: `Max: ${thresholds?.max}${unit}`, fill: "#ef4444", position: "insideTopLeft" }}
         />
         <Line
           type="monotone"
