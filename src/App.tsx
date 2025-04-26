@@ -1,37 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+// Change this import: remove Router and import BrowserRouter
+import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom'
+import OverviewPage from './pages/OverviewPage'
+import RootLayout from './pages/RootLayout'
+import DevicesPage from './pages/DevicesPage'
+import DeviceDetailPage from './pages/DeviceDetailPage'
+import SchedulePage from './pages/SchedulePage'
+import { JSX } from 'react'
+import SideBar from './components/SideBar'
+import AuthPage from './pages/AuthPage'
+import DeviceFormPage from './pages/DeviceFromPage'
+import RoomsPage from './pages/RoomsPage'
+import RoomDevicesPage from './pages/RoomDevicesPage'
+import TriggersPage from './pages/TriggersPage'
+import LogsPage from './pages/LogsPage'
+
+const isAuthenticated = () => !!localStorage.getItem('authToken');
+
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  if (!isAuthenticated()) {
+      return <Navigate to="/auth" replace />;
+  }
+  return children;
+};
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+
+    // <BrowserRouter>
+      <div className="flex min-h-screen">
+         {isAuthenticated() && <SideBar />}
+         <div className="flex-1">
+            <Routes>
+               <Route path="/auth" element={<AuthPage />} />
+               <Route path="/" element={<ProtectedRoute><OverviewPage /></ProtectedRoute>} />
+               <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+               <Route path="/devices" element={<ProtectedRoute><DevicesPage /></ProtectedRoute>} />
+               <Route path="/devices/add" element={<ProtectedRoute><DeviceFormPage /></ProtectedRoute>} />
+               <Route path="/devices/edit/:id" element={<ProtectedRoute><DeviceFormPage /></ProtectedRoute>} />
+               <Route path="/devices/:id" element={<ProtectedRoute><DeviceDetailPage /></ProtectedRoute>} />
+               <Route path="/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+               <Route path="/rooms/:roomId/devices" element={<RoomDevicesPage />} />
+               <Route path="/triggers" element={<TriggersPage />} />
+               <Route path="/logs" element={<LogsPage />} />
+               <Route path="*" element={isAuthenticated() ? <Navigate to="/" /> : <Navigate to="/auth" />} />
+            </Routes>
+         </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-        <h1 className="text-3xl font-bold underline text-red-600">
-          Simple React Typescript Tailwind Sample
-        </h1>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    // </BrowserRouter> // Close BrowserRouter
   )
 }
 
