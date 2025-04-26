@@ -20,43 +20,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Link, useNavigate } from "react-router-dom"
-import { format } from "date-fns"
 import { Bounce, toast, ToastContainer } from "react-toastify"
-
-// const scheduleData = [
-//   {
-//     date: new Date(2025, 3, 15),
-//     tasks: [
-//       { id: 1, start_time: "06:00", end_time: "06:20", device: "May bom 1", name: "Tuoi cay sang", deviceKey: "pump1" },
-//       { id: 2, start_time: "10:50", end_time: "11:00", device: "May bom 2", name: "Tuoi cay trua", deviceKey: "pump2" },
-//       { id: 3, start_time: "14:50", end_time: "14:00", device: "Quat", name: "Quat cay chieu", deviceKey: "fan" },
-//     ],
-//   }
-// ]
 
 // Function to get tasks for a specific date
 const getTasksForDate = (date: Date, scheduleData: ScheduleData|any) => {
   if (!date) return []
   const formattedDate = date.toDateString()
   const scheduleItem = scheduleData?.find((item:ScheduleSingleData) => item.date.toDateString() === formattedDate)
-  // console.log("current" + date.toDateString())
-  // scheduleData.map((item) => {console.log(item.date.toDateString())})
-  // console.log(scheduleItem)
   return scheduleItem ? scheduleItem.tasks : []
 }
 
-// Function to check if a date has tasks
-// const hasTasksOnDate = (date: Date) => {
-//   const formattedDate = date.toDateString()
-//   return scheduleData.some((item) => item.date.toDateString() === formattedDate)
-// }
-
-// Get device color
-const getDeviceColor = (device: string) => {
-  if (device.includes("pump")) return "bg-green-100 text-green-800"
-  if (device.includes("fan")) return "bg-purple-100 text-purple-800"
-  return "bg-gray-100 text-gray-800"
-}
 // Get device Vietnamese name
 const getDeviceVName = (deviceKey: string) => {
   if (deviceKey.includes("fan")) return "Quạt"
@@ -162,19 +135,6 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
                           {dayTasks.length}
                         </div>
                       </div>}
-                      {/* <div className="flex-1 overflow-y-auto scrollbar-hide">
-                        {dayTasks.slice(0, 2).map((task:Task) => (
-                          <div
-                            key={task.id}
-                            className={`text-xs mb-1 truncate rounded px-1 ${getDeviceColor(task.deviceKey)}`}
-                          >
-                            {task.name}
-                          </div>
-                        ))}
-                        {dayTasks.length > 2 && (
-                          <div className="text-xs text-muted-foreground">+{dayTasks.length - 2} more</div>
-                        )}
-                      </div> */}
                     </div>
                   </button>
                 </TooltipTrigger>
@@ -229,6 +189,7 @@ type ScheduleItem = {
 };
 type Task = {
   id: string;
+  scheduleId: string;
   feedId: number;
   status: boolean;
   name: string;
@@ -264,12 +225,14 @@ function generateMonthlyTasks(
   const tasks: MonthlyTasks = [];
 
   formattedSchedules.forEach((schedule:ScheduleItem) => {
-    const startDate = new Date(schedule.startDate);
-    const endDate = new Date(schedule.endDate);
+    const offsetTime = 7 * 60 * 60 * 1000
+    const startDate = new Date(new Date(schedule.startDate).getTime() - offsetTime);
+    const endDate = new Date(new Date(schedule.endDate).getTime() - offsetTime);
 
     const createTask = (date: Date): Task => ({
       id: `${schedule.id}-${date.toISOString().slice(0, 10)}`,
       feedId: schedule.feedId,
+      scheduleId: schedule.id,
       status: schedule.status,
       name: schedule.name,
       deviceKey: schedule.deviceKey,
@@ -280,13 +243,18 @@ function generateMonthlyTasks(
     });
 
     if (schedule.type === 'ONCE') {
-      if (startDate >= firstDayOfMonth && startDate <= lastDayOfMonth) {
-        tasks.push(createTask(startDate));
+      let currentDate = new Date(firstDayOfMonth);
+      while (currentDate <= lastDayOfMonth) {
+        if (currentDate > endDate) {
+          break
+        }
+        if (currentDate.valueOf() >= startDate.valueOf()) {
+          tasks.push(createTask(currentDate));
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
       }
     } else if (schedule.type === 'WEEKLY' && schedule.weekDay) {
-      const startOfMonthDay = firstDayOfMonth.getDay();
       const targetDay = parseInt(schedule.weekDay, 10);
-
       let currentDate = new Date(firstDayOfMonth);
       while (currentDate.getDay() !== targetDay) {
         currentDate.setDate(currentDate.getDate() + 1);
@@ -294,11 +262,8 @@ function generateMonthlyTasks(
           break;
         }
       }
-
-      while (currentDate <= lastDayOfMonth && currentDate <= endDate) {
-        if (currentDate >= startDate) {
-          tasks.push(createTask(currentDate));
-        }
+      while (currentDate <= lastDayOfMonth) {
+        tasks.push(createTask(currentDate));
         currentDate.setDate(currentDate.getDate() + 7);
       }
     } else if (schedule.type === 'DAILY') {
@@ -368,6 +333,7 @@ export default function SchedulePage() {
     endTime:"",
     weekDay:"MONDAY"
   })
+  const [ticks, setTicks] = useState(0)
   const [actuatorKeys, setActuatorKeys] = useState({
     "pump1":{feedId:0, deviceId:0},
     "pump2":{feedId:0, deviceId:0},
@@ -423,7 +389,6 @@ export default function SchedulePage() {
       },
       body: JSON.stringify(requestBody)
     })
-    // console.log(requestBody)
     // console.log(response)
     toast(`Tạo lịch mới ${response.ok ? 'thành công' : 'thất bại'}!`, {
       position: "bottom-right",
@@ -436,7 +401,36 @@ export default function SchedulePage() {
       theme: "light",
       transition: Bounce,
     });
+    if (!response.ok && response.status == 401) {
+      navigate("/login")
+    }
+    setTicks(prev => prev + 1)
     setOpen(false)
+  }
+  const deleteScheduleByTaskId = async (taskId:string) => {
+    const deleteTask = tasks.find((task:any) => {return task.id == taskId})
+    const token = sessionStorage.getItem('accessToken')
+    const response = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/schedule/${deleteTask.scheduleId}`, {
+      method: 'DELETE',
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+    toast(`Xóa lịch ${response.ok ? 'thành công' : 'thất bại'}!`, {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: true,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
+    if (!response.ok && response.status == 401) {
+      navigate("/login")
+    }
+    setTicks(prev => prev + 1)
   }
   useEffect(()=>{
     const getDeviceList = async () => {
@@ -483,7 +477,7 @@ export default function SchedulePage() {
       }
     }
     getDeviceList()
-  },[])
+  },[ticks])
   useEffect(()=>{
     const roomKey = sessionStorage.getItem("roomKey")
     if (!roomKey) {
@@ -522,10 +516,10 @@ export default function SchedulePage() {
       setScheduleDate(createSchedule(allTasks));
     }
     getTasksForMonth()
-  },[date.getMonth(), date.getFullYear()])
+  },[date.getMonth(), date.getFullYear(), ticks])
   useEffect(() => {
     setTaskForm(prev => ({...prev, ['startDate']:formatLocalDate(date.toLocaleDateString())}))
-  }, [date])
+  }, [date,ticks])
   
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -540,7 +534,7 @@ export default function SchedulePage() {
                     <span className="sr-only">Back</span>
                   </Link>
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Lập lịch</h1>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Lập lịch {ticks}</h1>
               </div>
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -716,14 +710,13 @@ export default function SchedulePage() {
                             <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                               <div>
                                 <div className="font-medium">
-                                  {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
+                                  {task.startTime.substring(0, 5)} - {task.endTime.substring(0, 5)} - {task.name} - {task.type} - {getDeviceVName(task.deviceKey)}
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
-                                <Button variant="outline" size="sm">
-                                  Sửa
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
+                              <div className="flex">
+                                <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600"
+                                  onClick={()=>{deleteScheduleByTaskId(task.id)}}
+                                >
                                   Xóa
                                 </Button>
                               </div>
@@ -740,11 +733,10 @@ export default function SchedulePage() {
                                     {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm">
-                                    Sửa
-                                  </Button>
-                                  <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
+                                <div className="flex">
+                                  <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600"
+                                    onClick={()=>{deleteScheduleByTaskId(task.id)}}
+                                  >
                                     Xóa
                                   </Button>
                                 </div>
@@ -761,11 +753,10 @@ export default function SchedulePage() {
                                     {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm">
-                                    Sửa
-                                  </Button>
-                                  <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
+                                <div className="flex">
+                                  <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600"
+                                    onClick={()=>{deleteScheduleByTaskId(task.id)}}
+                                  >
                                     Xóa
                                   </Button>
                                 </div>
