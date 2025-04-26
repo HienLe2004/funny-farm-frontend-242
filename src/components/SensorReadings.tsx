@@ -11,7 +11,8 @@ export default function SensorReadings () {
         "soil":0
     })
     const [lastUpdatedDate, setLastUpdatedDate] = useState(new Date())
-    const [tick,setTick] = useState(0)
+    // Remove the tick state
+    // const [tick,setTick] = useState(0)
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
@@ -80,16 +81,24 @@ export default function SensorReadings () {
             }
 
         }
-        const interval = setInterval(() => {
-            setTick((prev) => prev + 1)
-        }, 1000);
+        // Remove the interval setup and cleanup
+        // const interval = setInterval(() => {
+        //     setTick((prev) => prev + 1)
+        // }, 1000);
         getCurrentSensorValue()
         connectAdafruitMQTT()
+        // return () => {
+        //     clearInterval(interval); 
+        // }
+        // Add client.end() to cleanup MQTT connection
         return () => {
-            clearInterval(interval); 
+            if (client) {
+                client.end();
+                console.log('Disconnected from Adafruit IO MQTT on cleanup');
+            }
         }
-    }, [])
-    
+    }, [ownerAIOUsername, groupKey, userAIOUsername, userAIOUserkey]) // Added dependencies
+
     
     return (
         <div className="space-y-4">

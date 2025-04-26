@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, PanelLeft, PanelLeftClose, Thermometer } from "lucide-react";
+// Import Warehouse icon
+import { Activity, BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, Lightbulb, PanelLeft, PanelLeftClose, Thermometer, Warehouse, Zap } from "lucide-react";
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
@@ -40,6 +41,30 @@ export default function SideBar() {
                             <Link to="/analytics">
                                 <BarChart3 className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
                                 {!collapsed && "Thống kê"}
+                            </Link>
+                        </Button>
+                        {/* Add the new Rooms (Phòng) link here */}
+                        <Button variant={currentPath === "/rooms" ? "default":"ghost"} asChild
+                        className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
+                            <Link to="/rooms">
+                                <Warehouse className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
+                                {!collapsed && "Phòng"}
+                            </Link>
+                        </Button>
+                        {/* Add the new Triggers link here */}
+                        <Button variant={currentPath === "/triggers" ? "default":"ghost"} asChild
+                        className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
+                            <Link to="/triggers">
+                                <Zap className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
+                                {!collapsed && "Trigger"}
+                            </Link>
+                        </Button>
+                        {/* Add the new Logs (Nhật ký) link here */}
+                        <Button variant={currentPath === "/logs" ? "default":"ghost"} asChild
+                        className={cn("w-full", collapsed ? "justify-center px-2" : "justify-start")}>
+                            <Link to="/logs">
+                                <Activity className={cn("h-4 w-4", collapsed ? "mr-0":"mr-2")}/>
+                                {!collapsed && "Nhật ký"}
                             </Link>
                         </Button>
                     </div>

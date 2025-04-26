@@ -55,15 +55,15 @@ interface Schedule {
   time_to: string
 }
 
-interface DeviceScheduleProps {
+interface DeviceScheduleWithRoomIdProps {
   deviceId: string
+  roomId: number
 }
 
-export function DeviceSchedule({ deviceId }: DeviceScheduleProps) {
+export function DeviceScheduleWithRoomId({ deviceId, roomId }: DeviceScheduleWithRoomIdProps) {
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [roomId, setRoomId] = useState<number | null>(null)
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date()
     return { month: now.getMonth() + 1, year: now.getFullYear() }
@@ -72,82 +72,12 @@ export function DeviceSchedule({ deviceId }: DeviceScheduleProps) {
   // Helper to get auth token
   const getAuthToken = () => localStorage.getItem("authToken")
 
-  // First, fetch the device details to get the room ID
-  useEffect(() => {
-    const fetchDeviceDetails = async () => {
-      if (!deviceId) {
-        setError("Device ID is required")
-        setLoading(false)
-        return
-      }
-
-      const token = getAuthToken()
-      if (!token) {
-        setError("Authentication token not found")
-        setLoading(false)
-        return
-      }
-
-      try {
-        // Fetch all rooms to find the device and its room
-        const response = await fetch(`${API_BASE_URL}/rooms`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch rooms: ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        if (data.code === 200 && data.listRoom) {
-          // We need to check each room's devices to find our device
-          let foundRoomId = null
-
-          // For each room, fetch its devices
-          for (const room of data.listRoom) {
-            const devicesResponse = await fetch(`${API_BASE_URL}/devices/room/${room.roomId}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-
-            if (devicesResponse.ok) {
-              const devicesData = await devicesResponse.json()
-
-              if (devicesData.code === 200 && devicesData.listDeviceDTO) {
-                // Check if our device is in this room
-                const deviceFound = devicesData.listDeviceDTO.some((device: any) => device.id.toString() === deviceId)
-
-                if (deviceFound) {
-                  foundRoomId = room.roomId
-                  break // Exit the loop once we find the room
-                }
-              }
-            }
-          }
-
-          if (foundRoomId) {
-            setRoomId(foundRoomId)
-          } else {
-            throw new Error(`Could not find room for device ID: ${deviceId}`)
-          }
-        } else {
-          throw new Error(data.message || "Failed to fetch rooms")
-        }
-      } catch (err) {
-        console.error("Error finding device room:", err)
-        setError(err instanceof Error ? err.message : "An unexpected error occurred")
-        setLoading(false)
-      }
-    }
-
-    fetchDeviceDetails()
-  }, [deviceId])
-
-  // Then, fetch schedules once we have the room ID
+  // Fetch schedules for the device
   useEffect(() => {
     const fetchSchedules = async () => {
-      if (!roomId) {
-        // Don't fetch if we don't have a room ID yet
+      if (!deviceId || !roomId) {
+        setError("Device ID and Room ID are required")
+        setLoading(false)
         return
       }
 
