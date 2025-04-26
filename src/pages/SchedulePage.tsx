@@ -372,7 +372,7 @@ export default function SchedulePage() {
   const navigate = useNavigate()
   const tasks = date ? getTasksForDate(date, scheduleData) : []
   const createNewTask = async () => {
-    console.log(taskForm)
+    // console.log(taskForm)
     const token = sessionStorage.getItem('accessToken')
     let requestBody = {}
     if (taskForm.scheduleType=="ONCE") {

@@ -286,10 +286,10 @@ export default function DeviceDetailPage () {
     
                 <div className="mt-6">
                   <Tabs defaultValue="chart">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="chart">Biểu đồ</TabsTrigger>
                       <TabsTrigger value="log">Nhật ký hoạt động</TabsTrigger>
-                      <TabsTrigger value="schedule">Lập lịch</TabsTrigger>
+                      {/* <TabsTrigger value="schedule">Lập lịch</TabsTrigger> */}
                     </TabsList>
                     <TabsContent value="chart" className="mt-4">
                       <Card>
@@ -313,17 +313,17 @@ export default function DeviceDetailPage () {
                         </CardContent>
                       </Card>
                     </TabsContent>
-                    <TabsContent value="schedule" className="mt-4">
+                    {/* <TabsContent value="schedule" className="mt-4">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-2xl font-semibold">Lịch của thiết bị</CardTitle>
                           <CardDescription>Các lịch sắp tới của thiết bị</CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <DeviceSchedule deviceId={feedKey?feedKey:""} />
+                          <DeviceSchedule feedKey={feedKey?feedKey:""}/>
                         </CardContent>
                       </Card>
-                    </TabsContent>
+                    </TabsContent> */}
                   </Tabs>
                 </div>
               </div>
