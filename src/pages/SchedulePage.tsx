@@ -37,6 +37,19 @@ const getDeviceVName = (deviceKey: string) => {
   if (deviceKey.includes("2")) return "Máy bơm 2"
   return "NULL"
 }
+function addTimeToDate(dateObject:Date|null, timeString:string) {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    console.error("Invalid time format");
+    return null; // Or throw an error
+  }
+  const newDate = new Date(dateObject?dateObject:new Date()); // Create a copy to avoid modifying the original
+  newDate.setHours(hours);
+  newDate.setMinutes(minutes);
+  newDate.setSeconds(0); // Optionally set seconds and milliseconds to 0
+  newDate.setMilliseconds(0);
+  return newDate;
+}
 // Custom calendar component
 const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selectedDate: Date; onSelectDate: (date: Date) => void; scheduleData: ScheduleData|any }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -116,7 +129,7 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
           const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString()
           const isToday = day.toDateString() === new Date().toDateString()
           const dayTasks = getTasksForDate(day, scheduleData)
-
+          // console.log(dayTasks)
           return (
             <TooltipProvider key={day.toDateString()}>
               <Tooltip>
@@ -131,7 +144,7 @@ const CustomCalendar = ({ selectedDate, onSelectDate, scheduleData }: { selected
                       <div className={`text-sm font-medium ${isToday ? "text-blue-600" : ""}`}>{day.getDate()}</div>
                       
                       {(dayTasks.length>0)&&<div className="mt-2">
-                        <div className="bg-blue-400 w-6 h-6 text-white text-xs flex justify-center items-center rounded-full text-center">
+                        <div className={`${dayTasks[0].date.valueOf() < new Date().valueOf() ? 'bg-green-400' : 'bg-red-400'} w-6 h-6 text-white text-xs flex justify-center items-center rounded-full text-center`}>
                           {dayTasks.length}
                         </div>
                       </div>}
@@ -214,23 +227,28 @@ interface TaskForm {
     endTime:string,
     weekDay:string
 }
+function dayStringToDayValue(dayString:string) {
+  const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+  const upperCaseDayString = dayString.toUpperCase();
+  const dayIndex = days.indexOf(upperCaseDayString);
+  return dayIndex !== -1 ? dayIndex : undefined;
+}
 function generateMonthlyTasks(
   formattedSchedules: ScheduleItem[],
   year: number,
   month: number
 ): MonthlyTasks {
-  // console.log("create task for " + year + " " + month)
+  console.log("create task for " + year + " " + month)
   const firstDayOfMonth = new Date(year, month - 1, 1);
-  const lastDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month, 0);
   const tasks: MonthlyTasks = [];
-
+  // console.log(firstDayOfMonth)
+  // console.log(lastDayOfMonth)
   formattedSchedules.forEach((schedule:ScheduleItem) => {
-    const offsetTime = 7 * 60 * 60 * 1000
-    const startDate = new Date(new Date(schedule.startDate).getTime() - offsetTime);
-    const endDate = new Date(new Date(schedule.endDate).getTime() - offsetTime);
-
+    const startDate = new Date(schedule.startDate);
+    const endDate = new Date(schedule.endDate);
     const createTask = (date: Date): Task => ({
-      id: `${schedule.id}-${date.toISOString().slice(0, 10)}`,
+      id: `${schedule.id}-${date.toLocaleDateString().slice(0, 10)}`,
       feedId: schedule.feedId,
       scheduleId: schedule.id,
       status: schedule.status,
@@ -254,7 +272,7 @@ function generateMonthlyTasks(
         currentDate.setDate(currentDate.getDate() + 1);
       }
     } else if (schedule.type === 'WEEKLY' && schedule.weekDay) {
-      const targetDay = parseInt(schedule.weekDay, 10);
+      const targetDay = dayStringToDayValue(schedule.weekDay);
       let currentDate = new Date(firstDayOfMonth);
       while (currentDate.getDay() !== targetDay) {
         currentDate.setDate(currentDate.getDate() + 1);
@@ -267,8 +285,8 @@ function generateMonthlyTasks(
         currentDate.setDate(currentDate.getDate() + 7);
       }
     } else if (schedule.type === 'DAILY') {
-      let currentDate = new Date(startDate);
-      while (currentDate <= lastDayOfMonth && currentDate <= endDate) {
+      let currentDate = new Date(firstDayOfMonth);
+      while (currentDate <= lastDayOfMonth) {
         if (currentDate >= firstDayOfMonth) {
           tasks.push(createTask(currentDate));
         }
@@ -276,34 +294,41 @@ function generateMonthlyTasks(
       }
     }
   });
-
   return tasks.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+function vietnameseDateStringToDate(dateString:string) {
+  const parts = dateString.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in JavaScript
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+  return new Date();
 }
 function createSchedule(tasks: Task[]): ScheduleData {
   const scheduleMap = new Map<string, Task[]>();
-
+  // console.log(tasks)
   for (const task of tasks) {
-    // Create a string representation of the date to use as the key in the map
-    const dateKey = task.date.toDateString();
-
+    const dateKey = task.date.toLocaleDateString();
+    // console.log(dateKey)
+    // console.log(vietnameseDateStringToDate(dateKey))
     if (scheduleMap.has(dateKey)) {
       scheduleMap.get(dateKey)!.push(task);
     } else {
       scheduleMap.set(dateKey, [task]);
     }
   }
-
   const scheduleData: ScheduleData = [];
   for (const [dateString, taskList] of scheduleMap.entries()) {
     scheduleData.push({
-      date: new Date(dateString),
+      date: vietnameseDateStringToDate(dateString),
       tasks: taskList,
     });
   }
-
+  // console.log(scheduleData)
   // Optionally sort the schedule data by date
   scheduleData.sort((a, b) => a.date.getTime() - b.date.getTime());
-
   return scheduleData;
 }
 function formatLocalDate(dateString: string) : string {
@@ -315,6 +340,11 @@ function formatLocalDate(dateString: string) : string {
     return `${year}-${month}-${day.padStart(2, '0')}`;
   }
   return '';
+}
+function getGlobalDate(dateString:string) :Date{
+  const offsetTime = 7 * 60 * 60 * 1000
+  const vDate = new Date(new Date(dateString).getTime() - offsetTime)
+  return vDate
 }
 export default function SchedulePage() {
   const [date, setDate] = useState<Date>(new Date())
@@ -451,6 +481,7 @@ export default function SchedulePage() {
         }
       })
       const roomData = await roomResponse.json()
+      // console.log(roomData)
       if (roomData.listDeviceDTO.length > 0) {
         const deviceDataList = {
           "pump1":{feedId:0, deviceId:0},
@@ -505,8 +536,8 @@ export default function SchedulePage() {
         "status":schedule.status=="ACTIVE",
         "name":schedule.description,
         "deviceKey":Object.keys(schedule.device.feedsList)[0].split(".")[1],
-        "startDate":new Date(schedule.startDate),
-        "endDate":new Date(schedule.endDate),
+        "startDate":getGlobalDate(schedule.startDate),
+        "endDate":getGlobalDate(schedule.endDate),
         "startTime":schedule.time_from,
         "endTime":schedule.time_to,
         "type":schedule.scheduleType,
@@ -730,7 +761,7 @@ export default function SchedulePage() {
                               <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                                 <div>
                                   <div className="font-medium">
-                                    {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
+                                    {task.startTime.substring(0, 5)} - {task.endTime.substring(0, 5)} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
                                 <div className="flex">
@@ -750,7 +781,7 @@ export default function SchedulePage() {
                               <div key={task.id} className="flex justify-between items-center border rounded-lg p-4">
                                 <div>
                                   <div className="font-medium">
-                                    {task.startTime} - {task.endTime} - {task.name} - {getDeviceVName(task.deviceKey)}
+                                    {task.startTime.substring(0, 5)} - {task.endTime.substring(0, 5)} - {task.name} - {getDeviceVName(task.deviceKey)}
                                   </div>
                                 </div>
                                 <div className="flex">

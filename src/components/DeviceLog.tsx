@@ -9,10 +9,10 @@ const getLogIcon = (type: string) => {
       return <Info className="h-4 w-4 text-blue-500" />
     case "success":
       return <Check className="h-4 w-4 text-green-500" />
-    case "warning":
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />
-    case "error":
-      return <X className="h-4 w-4 text-red-500" />
+    case "TRIGGER_MAX":
+      return <AlertTriangle className="h-4 w-4 text-red-500" />
+    case "TRIGGER_MIN":
+      return <AlertTriangle className="h-4 w-4 text-red-500" />
     default:
       return <Activity className="h-4 w-4 text-gray-500" />
   }
@@ -50,25 +50,39 @@ export function DeviceLog({ deviceFeedKey }: { deviceFeedKey: string }) {
           "Authorization": `Bearer ${token}`
         }
       })
-      if (!response.ok && response.status) {
+      if (!response.ok && response.status == 401) {
         navigate("/login")
         return
       }
+      console.log(response)
       const data = await response.json()
       console.log(data)
       const logDTOs = data.listLogDTO ? data.listLogDTO : []
-      console.log(logDTOs)
+      setLogs(logDTOs.map((logDTO:any) => {
+        let eventString = ""
+        if (logDTO.logType == "DATA") {
+          eventString = `Giá trị hiện tại là ${logDTO.value}`
+        }
+        else if (logDTO.logType == "TRIGGER_MAX") {
+          eventString = `Giá trị hiện tại (${logDTO.value}) vượt ngưỡng MAX`
+        }
+        else if (logDTO.logType == "TRIGGER_MIN") {
+          eventString = `Giá trị hiện tại (${logDTO.value}) vượt ngưỡng MIN`
+        }
+        return {"type":logDTO.logType,"event":eventString,"time":logDTO.createdAt}
+      }))
+      // console.log(logDTOs)
     }
     getDeviceLog()
   },[deviceFeedKey])
   return (
     <div className="space-y-4">
       {logs.length === 0 ? (
-        <div className="text-center py-4 text-muted-foreground">No logs available</div>
+        <div className="text-center py-4 text-muted-foreground">Trống</div>
       ) : (
         logs.map((log, index) => (
           <div key={index} className="flex items-start space-x-4 rounded-lg border p-4">
-            <div className="mt-0.5">{getLogIcon(log.type)}</div>
+            <div className="mt-0.5">{getLogIcon(log?.type)}</div>
             <div className="space-y-1">
               <p className="text-sm font-medium">{log.event}</p>
               <div className="flex items-center text-xs text-muted-foreground">
