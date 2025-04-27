@@ -95,6 +95,16 @@ export default function DeviceDetailPage () {
       "soil":{feedId:0,threshold_min:0,threshold_max:0},
       "ready":{feedId:0,threshold_min:0,threshold_max:0}
     })
+    const [deviceIds, setDeviceIds] = useState({
+      "light":{feedId:0,id:0},
+      "temp":{feedId:0,id:0},
+      "hum":{feedId:0,id:0},
+      "soil":{feedId:0,id:0},
+      "pump1":{feedId:0,id:0},
+      "pump2":{feedId:0,id:0},
+      "fan":{feedId:0,id:0},
+      "ready":{feedId:0,id:0}
+    })
     const [device,setDevice] = useState(devices[id as keyof typeof devices])
     if (!device) {
         return<>Not found</>
@@ -223,6 +233,16 @@ export default function DeviceDetailPage () {
             const deviceDataList = {
               "light":{feedId:0,threshold_min:0,threshold_max:0}, "temp":{feedId:0,threshold_min:0,threshold_max:0}, "hum":{feedId:0,threshold_min:0,threshold_max:0}, "soil":{feedId:0,threshold_min:0,threshold_max:0}, "ready":{feedId:0,threshold_min:0,threshold_max:0}
             }
+            const deviceIdList = {
+              "light":{feedId:0,id:0},
+              "temp":{feedId:0,id:0},
+              "hum":{feedId:0,id:0},
+              "soil":{feedId:0,id:0},
+              "pump1":{feedId:0,id:0},
+              "pump2":{feedId:0,id:0},
+              "fan":{feedId:0,id:0},
+              "ready":{feedId:0,id:0}
+            }
             const listDeviceDTO = roomData.listDeviceDTO
             listDeviceDTO.map((deviceDTO:any) => {
               if (deviceDTO.type == "SENSOR") {
@@ -237,17 +257,27 @@ export default function DeviceDetailPage () {
                   }
                 })
               }
+              const deviceFeedKey = Object.keys(deviceDTO.feedsList)[0]
+              Object.keys(deviceIdList).forEach((device) => {
+                if (deviceFeedKey.split(".")[1].includes(device)) {
+                  deviceIdList[device as keyof typeof deviceIdList] = {
+                    "id":deviceDTO.id,
+                    "feedId":deviceDTO.feedsList[deviceFeedKey].feedId
+                  }
+                }
+              })
             })
-            console.log(deviceDataList)
             deviceDataList.ready.feedId = 1
+            deviceIdList.ready.feedId = 1
             setSensorFeedIds(deviceDataList)
+            setDeviceIds(deviceIdList)
           }
           else {
             console.log("Room has no device")
           }
         }
         getDeviceList()
-      }, [feedKey, sensorFeedIds.ready.feedId])
+      }, [feedKey, sensorFeedIds.ready.feedId, deviceIds.ready.feedId])
     return (
         <div className="flex min-h-screen w-full flex-col">
           <main className="flex-1">
@@ -299,10 +329,50 @@ export default function DeviceDetailPage () {
                       )}
                     </CardContent>
                   </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-2xl font-semibold">Thông tin khác</CardTitle>
+                      <CardDescription>Một số thông tin khác</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className=" text-sm font-medium">DeviceId:</span>
+                          <span className="font-bold">
+                            {deviceIds[feedKey as keyof typeof deviceIds].id}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className=" text-sm font-medium">FeedKey:</span>
+                          <span className="font-bold">
+                            {feedKey}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className=" text-sm font-medium">FeedId:</span>
+                          <span className="font-bold">
+                            {deviceIds[feedKey as keyof typeof deviceIds].feedId}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className=" text-sm font-medium">RoomKey:</span>
+                          <span className="font-bold">
+                            {sessionStorage.getItem('roomKey')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className=" text-sm font-medium">RoomId:</span>
+                          <span className="font-bold">
+                            {sessionStorage.getItem('roomId')}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                   {device.type=="sensor" &&
                   <Card>
                     <CardHeader>
-                      <CardTitle>Cấu hình ngưỡng</CardTitle>
+                      <CardTitle className="text-2xl font-semibold">Cấu hình ngưỡng</CardTitle>
                       <CardDescription>Cấu hình ngưỡng hiện tại</CardDescription>
                     </CardHeader>
                     <CardContent>
