@@ -97,6 +97,7 @@ interface ScheduleForm {
 interface Device {
   id: number
   name: string
+  type: string
   feedsList: Record<
     string,
     {
@@ -648,11 +649,13 @@ export default function SchedulePage() {
                               <SelectValue placeholder="Chọn thiết bị" />
                             </SelectTrigger>
                             <SelectContent>
-                              {devices.map((device) => (
+                              {devices.map((device) => {
+                                if (device.type == "CONTROL")
+                                return (
                                 <SelectItem key={device.id} value={device.id.toString()}>
                                   {device.name}
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)
+                              })}
                             </SelectContent>
                           </Select>
                         </div>

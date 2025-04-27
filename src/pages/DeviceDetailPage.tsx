@@ -96,14 +96,14 @@ export default function DeviceDetailPage () {
       "ready":{feedId:0,threshold_min:0,threshold_max:0}
     })
     const [deviceIds, setDeviceIds] = useState({
-      "light":{feedId:0,id:0},
-      "temp":{feedId:0,id:0},
-      "hum":{feedId:0,id:0},
-      "soil":{feedId:0,id:0},
-      "pump1":{feedId:0,id:0},
-      "pump2":{feedId:0,id:0},
-      "fan":{feedId:0,id:0},
-      "ready":{feedId:0,id:0}
+      "light":{feedId:0,id:0,name:""},
+      "temp":{feedId:0,id:0,name:""},
+      "hum":{feedId:0,id:0,name:""},
+      "soil":{feedId:0,id:0,name:""},
+      "pump1":{feedId:0,id:0,name:""},
+      "pump2":{feedId:0,id:0,name:""},
+      "fan":{feedId:0,id:0,name:""},
+      "ready":{feedId:0,id:0,name:""}
     })
     const [device,setDevice] = useState(devices[id as keyof typeof devices])
     if (!device) {
@@ -234,14 +234,14 @@ export default function DeviceDetailPage () {
               "light":{feedId:0,threshold_min:0,threshold_max:0}, "temp":{feedId:0,threshold_min:0,threshold_max:0}, "hum":{feedId:0,threshold_min:0,threshold_max:0}, "soil":{feedId:0,threshold_min:0,threshold_max:0}, "ready":{feedId:0,threshold_min:0,threshold_max:0}
             }
             const deviceIdList = {
-              "light":{feedId:0,id:0},
-              "temp":{feedId:0,id:0},
-              "hum":{feedId:0,id:0},
-              "soil":{feedId:0,id:0},
-              "pump1":{feedId:0,id:0},
-              "pump2":{feedId:0,id:0},
-              "fan":{feedId:0,id:0},
-              "ready":{feedId:0,id:0}
+              "light":{feedId:0,id:0,name:""},
+              "temp":{feedId:0,id:0,name:""},
+              "hum":{feedId:0,id:0,name:""},
+              "soil":{feedId:0,id:0,name:""},
+              "pump1":{feedId:0,id:0,name:""},
+              "pump2":{feedId:0,id:0,name:""},
+              "fan":{feedId:0,id:0,name:""},
+              "ready":{feedId:0,id:0,name:""}
             }
             const listDeviceDTO = roomData.listDeviceDTO
             listDeviceDTO.map((deviceDTO:any) => {
@@ -262,6 +262,7 @@ export default function DeviceDetailPage () {
                 if (deviceFeedKey.split(".")[1].includes(device)) {
                   deviceIdList[device as keyof typeof deviceIdList] = {
                     "id":deviceDTO.id,
+                    "name":deviceDTO.name,
                     "feedId":deviceDTO.feedsList[deviceFeedKey].feedId
                   }
                 }
@@ -304,11 +305,11 @@ export default function DeviceDetailPage () {
                     <CardContent>
                       <div className="grid gap-2">
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Giá trị hiện tại:</span>
+                          <span className="font-medium">Giá trị hiện tại:</span>
                           <span className="font-bold">{device.value}{device.unit}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Trạng thái:</span>
+                          <span className="font-medium">Trạng thái:</span>
                           <span
                             className={`font-medium ${device.status === "active" ? "text-green-500" : "text-gray-500"}`}
                           >
@@ -316,12 +317,12 @@ export default function DeviceDetailPage () {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Cập nhật lần cuối:</span>
-                          <span className="text-sm text-muted-foreground">{formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true, locale: vi})}</span>
+                          <span className="font-medium">Cập nhật lần cuối:</span>
+                          <span className="text-muted-foreground">{formatDistanceToNowStrict(device.lastUpdated, { addSuffix: true, locale: vi})}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm font-medium">Loại thiết bị:</span>
-                          <span className="text-sm">{device.type=="sensor"?"Cảm biến":"Điều khiển"}</span>
+                          <span className=" font-medium">Loại thiết bị:</span>
+                          <span className="">{device.type=="sensor"?"Cảm biến":"Điều khiển"}</span>
                         </div>
                       </div>
                       {device.type === "actuator" && (
@@ -330,38 +331,45 @@ export default function DeviceDetailPage () {
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-2xl font-semibold">Thông tin khác</CardTitle>
                       <CardDescription>Một số thông tin khác</CardDescription>
                     </CardHeader>
                     <CardContent>
+                      
                       <div className="grid gap-2">
+                      <div className="flex justify-between items-center">
+                          <span className="font-medium">Tên thiết bị:</span>
+                          <span className="font-bold">
+                            {deviceIds[feedKey as keyof typeof deviceIds].name}
+                          </span>
+                        </div>
                         <div className="flex justify-between items-center">
-                          <span className=" text-sm font-medium">DeviceId:</span>
+                          <span className="font-medium">DeviceId:</span>
                           <span className="font-bold">
                             {deviceIds[feedKey as keyof typeof deviceIds].id}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className=" text-sm font-medium">FeedKey:</span>
+                          <span className="font-medium">FeedKey:</span>
                           <span className="font-bold">
                             {feedKey}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className=" text-sm font-medium">FeedId:</span>
+                          <span className="font-medium">FeedId:</span>
                           <span className="font-bold">
                             {deviceIds[feedKey as keyof typeof deviceIds].feedId}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className=" text-sm font-medium">RoomKey:</span>
+                          <span className="font-medium">RoomKey:</span>
                           <span className="font-bold">
                             {sessionStorage.getItem('roomKey')}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className=" text-sm font-medium">RoomId:</span>
+                          <span className="font-medium">RoomId:</span>
                           <span className="font-bold">
                             {sessionStorage.getItem('roomId')}
                           </span>
@@ -371,7 +379,7 @@ export default function DeviceDetailPage () {
                   </Card>
                   {device.type=="sensor" &&
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-2xl font-semibold">Cấu hình ngưỡng</CardTitle>
                       <CardDescription>Cấu hình ngưỡng hiện tại</CardDescription>
                     </CardHeader>
