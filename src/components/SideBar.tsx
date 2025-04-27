@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 // Import Warehouse icon
 import { Activity, BarChart3, Calendar, Droplet, Droplets, Fan, Gauge, Home, LogOut, Lightbulb, PanelLeft, PanelLeftClose, Thermometer, Warehouse, Zap } from "lucide-react";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast";
@@ -10,7 +10,8 @@ export default function SideBar() {
     const currentPath = location.pathname
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
-
+    const [currentRoomId, setCurrentRoomId] = useState(0);
+    
     const handleLogout = () => {
         // Clear authentication data
         sessionStorage.removeItem("accessToken")
@@ -23,6 +24,11 @@ export default function SideBar() {
         // Redirect to login page
         navigate("/login")
       }
+    useEffect(() => {
+      const roomId = sessionStorage.getItem('roomId') || ""
+      setCurrentRoomId(parseInt(roomId,10))
+    }, [])
+    
     return (
         <div className={cn("relative min-h-screen border-r transition-all duration-300", collapsed ? "w-16" : "w-64")}>
             <Button variant="ghost" size="icon"

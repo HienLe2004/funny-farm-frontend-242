@@ -22,8 +22,8 @@ export default function AuthPage() {
         event.preventDefault();
         setLoading(true);
         setError(null);
-
         try {
+            console.log(API_BASE_URL)
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: "POST",
                 headers: {
@@ -36,7 +36,38 @@ export default function AuthPage() {
 
             if (response.ok && data.code === 200 && data.authenticated) {
                 localStorage.setItem("authToken", data.token); // Store the token
+                sessionStorage.setItem("accessToken", data.token); // Store the token
                 localStorage.setItem("userEmail", email); // Optionally store user email
+                const roomListResponse = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/rooms`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${data.token}`
+                    }
+                })
+                const roomListData = await roomListResponse.json()
+                if (roomListData.listRoom.length > 0) {
+                  // Store roomId
+                    sessionStorage.setItem("roomId", roomListData.listRoom[0].roomId)
+                    const roomResponse = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/devices/room/${roomListData.listRoom[0].roomId}`, {
+                      method: 'GET',
+                      headers: {
+                        'Authorization': `Bearer ${data.token}`
+                      }
+                    })
+                    const roomData = await roomResponse.json()
+                    if (roomData.listDeviceDTO.length > 0) {
+                      const roomKey:string = Object.keys(roomData.listDeviceDTO[0].feedsList)[0].split('.')[0]
+                      sessionStorage.setItem("roomKey", roomKey)
+                    }
+                    else {
+                      console.log("Room has no device")
+                    }
+                }
+                else {
+                  console.log("User has no room")
+                  sessionStorage.removeItem("roomId")
+                  sessionStorage.removeItem("roomKey")
+                }
                 navigate("/"); // Redirect to overview page on successful login
             } else {
                 setError(data.message || `Login failed with status: ${response.status}`);
