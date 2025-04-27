@@ -14,6 +14,7 @@ import RoomsPage from './pages/RoomsPage'
 import RoomDevicesPage from './pages/RoomDevicesPage'
 import TriggersPage from './pages/TriggersPage'
 import LogsPage from './pages/LogsPage'
+import StatisticsPage from './pages/StatisticsPage'
 
 const isAuthenticated = () => !!localStorage.getItem('authToken');
 
@@ -29,7 +30,7 @@ function App() {
   return (
 
     // <BrowserRouter>
-      <div className="flex min-h-screen">
+      <div className="min-h-screen">
         <Routes>
           <Route path="/auth" element={<AuthPage/>}></Route>
           <Route path="/" element={<RootLayout><OverviewPage/></RootLayout>}></Route>
@@ -44,7 +45,7 @@ function App() {
           <Route path="/triggers" element={<RootLayout><TriggersPage /></RootLayout>} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="*" element={isAuthenticated() ? <Navigate to="/" /> : <Navigate to="/auth" />} />
-          {/* <Route path="/statistics" element={<RootLayout><StatisticsPage/></RootLayout>}></Route> */}
+          <Route path="/statistics" element={<RootLayout><StatisticsPage/></RootLayout>}></Route>
       </Routes>
          {/* {isAuthenticated() && <SideBar />}
          <div className="flex-1">
