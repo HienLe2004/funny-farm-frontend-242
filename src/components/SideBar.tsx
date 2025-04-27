@@ -5,6 +5,8 @@ import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast";
+import DarkModeButton from "./DarkModeButton";
+
 export default function SideBar() {
     const location = useLocation();
     const currentPath = location.pathname
@@ -150,6 +152,7 @@ export default function SideBar() {
                     </div>
                 </div>
                 <div className="bottom-4 left-0 right-0 px-4">
+                    <DarkModeButton collapsed={collapsed}/>
                     <Button
                         variant="ghost"
                         className={cn(

@@ -30,7 +30,7 @@ function App() {
   return (
 
     // <BrowserRouter>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-background text-foreground">
         <Routes>
           <Route path="/auth" element={<AuthPage/>}></Route>
           <Route path="/" element={<RootLayout><OverviewPage/></RootLayout>}></Route>
