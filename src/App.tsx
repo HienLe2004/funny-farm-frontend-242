@@ -1,13 +1,12 @@
 import './App.css'
 // Change this import: remove Router and import BrowserRouter
-import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import OverviewPage from './pages/OverviewPage'
 import RootLayout from './pages/RootLayout'
 import DevicesPage from './pages/DevicesPage'
 import DeviceDetailPage from './pages/DeviceDetailPage'
 import SchedulePage from './pages/SchedulePage'
-import { JSX } from 'react'
-import SideBar from './components/SideBar'
+// import { JSX } from 'react'
 import AuthPage from './pages/AuthPage'
 import DeviceFormPage from './pages/DeviceFromPage'
 import RoomsPage from './pages/RoomsPage'
@@ -18,12 +17,12 @@ import StatisticsPage from './pages/StatisticsPage'
 
 const isAuthenticated = () => !!localStorage.getItem('authToken');
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  if (!isAuthenticated()) {
-      return <Navigate to="/auth" replace />;
-  }
-  return children;
-};
+// const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+//   if (!isAuthenticated()) {
+//       return <Navigate to="/auth" replace />;
+//   }
+//   return children;
+// };
 
 
 function App() {

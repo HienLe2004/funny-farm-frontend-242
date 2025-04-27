@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ArrowLeft, PlusCircle, Edit, Trash2, AlertCircle, Check } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -71,7 +71,6 @@ interface ApiResponse<T> {
 const getAuthToken = () => localStorage.getItem("authToken")
 
 export default function TriggersPage() {
-  const navigate = useNavigate()
   const [triggers, setTriggers] = useState<Trigger[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +78,7 @@ export default function TriggersPage() {
   const [deviceId, setDeviceId] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
-  const [pageSize, setPageSize] = useState(5)
+  const [pageSize] = useState(5)
 
   // State for rooms
   const [rooms, setRooms] = useState<Room[]>([])
@@ -100,7 +99,7 @@ export default function TriggersPage() {
 
   // State for Update Dialog
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
-  const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null)
+  const [, setSelectedTrigger] = useState<Trigger | null>(null)
   const [updatedTrigger, setUpdatedTrigger] = useState<Trigger>({
     id: 0,
     status: "ACTIVE",

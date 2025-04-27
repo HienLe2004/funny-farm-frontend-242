@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, Check, Clock, Info, X } from "lucide-react"
+import { Activity, AlertTriangle, Check, Clock, Info } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -25,7 +25,7 @@ interface Log {
 export function DeviceLog({ deviceFeedKey }: { deviceFeedKey: string }) {
   const navigate = useNavigate()
   const [logs,setLogs] = useState<Log[]>([])
-  const [groupKey, setGroupKey] =  useState("")
+  const [, setGroupKey] =  useState("")
   
   useEffect(()=>{
     const roomKey = sessionStorage.getItem("roomKey")

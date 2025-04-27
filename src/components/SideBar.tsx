@@ -12,7 +12,7 @@ export default function SideBar() {
     const currentPath = location.pathname
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
-    const [currentRoomId, setCurrentRoomId] = useState(0);
+    const [, setCurrentRoomId] = useState(0);
     
     const handleLogout = () => {
         // Clear authentication data

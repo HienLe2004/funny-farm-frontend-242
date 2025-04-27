@@ -280,7 +280,7 @@ const AddDeviceForm = ({ onSuccess, onError }: { onSuccess: (message: string) =>
 
             {/* Dynamic Feed Inputs */}
             <Label>Feeds</Label>
-            {feeds.map((feed, index) => (
+            {feeds.map((feed, _) => (
                 <div key={feed.id} className="border p-4 rounded-md space-y-3 relative mb-3">
                      {feeds.length > 1 && ( // Show remove button only if more than one feed exists
                         <Button

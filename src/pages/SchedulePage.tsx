@@ -155,9 +155,9 @@ const getTasksForDate = (schedules: Schedule[], date: Date) => {
 }
 
 // Function to check if a date has tasks
-const hasTasksOnDate = (schedules: Schedule[], date: Date) => {
-  return getTasksForDate(schedules, date).length > 0
-}
+// const hasTasksOnDate = (schedules: Schedule[], date: Date) => {
+//   return getTasksForDate(schedules, date).length > 0
+// }
 
 // Get device color
 const getDeviceColor = (deviceName: string) => {

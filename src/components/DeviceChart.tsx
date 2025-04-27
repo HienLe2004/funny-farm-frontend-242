@@ -51,8 +51,7 @@ export default function DeviceChart({ deviceId }: { deviceId: string }) {
     const lineType = getLineType(deviceId)
     const [feedKey,setFeedKey] = useState(getFeedKey(deviceId))
     const [deviceData,setDeviceData] = useState<{time:string,value:Number}[]>([])
-    const [tick,setTick] = useState(0)
-    const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
+    // const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
     useEffect(()=>{

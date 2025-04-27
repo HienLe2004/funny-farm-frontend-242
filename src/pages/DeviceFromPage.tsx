@@ -181,8 +181,8 @@ export default function DeviceFormPage() {
              payloadFeeds[key] = {
                  feedId: feedIdNum,
                  // Only include thresholds if they are not empty strings
-                 ...(feed.threshold_max !== '' && { threshold_max: parseFloat(feed.threshold_max.toString()) }),
-                 ...(feed.threshold_min !== '' && { threshold_min: parseFloat(feed.threshold_min.toString()) }),
+                 ...(feed.threshold_max !== '' && { threshold_max: parseFloat(feed.threshold_max?.toString()?feed.threshold_max.toString():"") }),
+                 ...(feed.threshold_min !== '' && { threshold_min: parseFloat(feed.threshold_min?.toString()?feed.threshold_min.toString():"") }),
              };
              // Further validation for NaN thresholds if needed
              if (payloadFeeds[key].threshold_max !== undefined && isNaN(payloadFeeds[key].threshold_max as number)) {

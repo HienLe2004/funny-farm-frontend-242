@@ -1,9 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
 import mqtt from "mqtt";
-import { parseISO } from "date-fns";
 export default function OverviewChart () {
     interface Data {
         "time":string, value:number|null
@@ -20,7 +19,7 @@ export default function OverviewChart () {
             "pump1":[],
             "pump2":[]
         })
-    const [tick,setTick] = useState(0)
+    const [,setTick] = useState(0)
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""

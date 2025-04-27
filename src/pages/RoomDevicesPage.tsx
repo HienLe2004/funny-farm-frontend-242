@@ -40,6 +40,7 @@ interface Device {
 }
 
 interface ApiResponse<T> {
+  name: string
   code: number
   message: string
   authenticated?: boolean

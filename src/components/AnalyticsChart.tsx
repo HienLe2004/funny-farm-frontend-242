@@ -29,7 +29,7 @@ const formatXAxisTick = (tickValue:number, isSingleDay:Date) => {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, sensorType, isSingleDay } : CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, sensorType } : CustomTooltipProps) => {
   if (active && payload && payload.length) {
     // Get the display time from the data point
     const displayTime = payload[0].payload.displayTime
@@ -64,7 +64,7 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
   sensorType: "temp" | "hum" | "light" | "soil" | string;
   isSingleDay?: boolean;
 }
-export function AnalyticsChart({ data, ticks, sensorType, thresholds, dateRange, isSingleDay = false } : {
+export function AnalyticsChart({ data, ticks, sensorType, thresholds, isSingleDay = false } : {
     data:any, ticks:any, sensorType:any, thresholds:any, dateRange:any, isSingleDay:any
 }) {
   const color = getSensorColor(sensorType)

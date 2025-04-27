@@ -11,7 +11,7 @@ export default function SensorReadings () {
         "soil":0
     })
     const [lastUpdatedDate, setLastUpdatedDate] = useState(new Date())
-    const [tick,setTick] = useState(0)
+    const [,setTick] = useState(0)
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""

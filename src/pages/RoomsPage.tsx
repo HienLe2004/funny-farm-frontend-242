@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, PlusCircle, Edit, Trash2, Copy, Share2, AlertCircle, Building } from "lucide-react"; // Added Building icon
+import { ArrowLeft, PlusCircle, Edit, Copy, Share2, AlertCircle } from "lucide-react"; // Added Building icon
 import { Link, useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL; // Ensure this is correct
@@ -298,7 +298,7 @@ export default function RoomsPage() {
      const copyToClipboard = () => {
          navigator.clipboard.writeText(encodedRoomString)
              .then(() => showSuccess("Encoded string copied to clipboard!"))
-             .catch(err => showError("Failed to copy text."));
+             .catch(_ => showError("Failed to copy text."));
      };
 
     const handleAssignRoom = async (event: React.FormEvent) => {

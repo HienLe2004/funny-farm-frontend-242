@@ -29,25 +29,25 @@ interface FeedsList {
   }
 }
 
-interface Device {
-  id: number
-  roomId?: number | null // Can be null if unassigned
-  name: string
-  type: string // "SENSOR", "CONTROL", etc.
-  status: string // "ACTIVE", "INACTIVE"
-  feedsList: { [key: string]: any }
-}
+// interface Device {
+//   id: number
+//   roomId?: number | null // Can be null if unassigned
+//   name: string
+//   type: string // "SENSOR", "CONTROL", etc.
+//   status: string // "ACTIVE", "INACTIVE"
+//   feedsList: { [key: string]: any }
+// }
 
-interface ApiResponse<T> {
-  code: number
-  message: string
-  authenticated?: boolean
-  currentPage?: number
-  totalPages?: number
-  totalElements?: number
-  listDeviceDTO?: T[]
-  // Add other potential fields if needed
-}
+// interface ApiResponse<T> {
+//   code: number
+//   message: string
+//   authenticated?: boolean
+//   currentPage?: number
+//   totalPages?: number
+//   totalElements?: number
+//   listDeviceDTO?: T[]
+//   // Add other potential fields if needed
+// }
 
 interface AddDeviceToRoomFormProps {
   roomId: string | undefined
@@ -90,39 +90,39 @@ export default function AddDeviceToRoomForm({ roomId, onSuccess, onError }: AddD
   }
 
   // Function to fetch unassigned devices and find the newly created one
-  const findNewlyCreatedDevice = async (deviceName: string): Promise<number | null> => {
-    const token = getAuthToken()
+  // const findNewlyCreatedDevice = async (deviceName: string): Promise<number | null> => {
+  //   const token = getAuthToken()
 
-    try {
-      console.log("Fetching unassigned devices to find newly created device:", deviceName)
-      const response = await fetch(`${API_BASE_URL}/devices/unassign?page=0&size=50`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+  //   try {
+  //     console.log("Fetching unassigned devices to find newly created device:", deviceName)
+  //     const response = await fetch(`${API_BASE_URL}/devices/unassign?page=0&size=50`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
 
-      const data: ApiResponse<Device> = await response.json()
+  //     const data: ApiResponse<Device> = await response.json()
 
-      if (response.ok && data.code === 200 && data.listDeviceDTO) {
-        console.log("Unassigned devices:", data.listDeviceDTO)
+  //     if (response.ok && data.code === 200 && data.listDeviceDTO) {
+  //       console.log("Unassigned devices:", data.listDeviceDTO)
 
-        // Find the device with matching name
-        const newDevice = data.listDeviceDTO.find((device) => device.name === deviceName)
+  //       // Find the device with matching name
+  //       const newDevice = data.listDeviceDTO.find((device) => device.name === deviceName)
 
-        if (newDevice) {
-          console.log("Found newly created device:", newDevice)
-          return newDevice.id
-        } else {
-          console.error("Could not find newly created device with name:", deviceName)
-          return null
-        }
-      } else {
-        console.error("Failed to fetch unassigned devices:", data.message)
-        return null
-      }
-    } catch (err) {
-      console.error("Error fetching unassigned devices:", err)
-      return null
-    }
-  }
+  //       if (newDevice) {
+  //         console.log("Found newly created device:", newDevice)
+  //         return newDevice.id
+  //       } else {
+  //         console.error("Could not find newly created device with name:", deviceName)
+  //         return null
+  //       }
+  //     } else {
+  //       console.error("Failed to fetch unassigned devices:", data.message)
+  //       return null
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching unassigned devices:", err)
+  //     return null
+  //   }
+  // }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -256,7 +256,7 @@ export default function AddDeviceToRoomForm({ roomId, onSuccess, onError }: AddD
 
       {/* Dynamic Feed Inputs */}
       <Label>Feeds</Label>
-      {feeds.map((feed, index) => (
+      {feeds.map((feed, _) => (
         <div key={feed.id} className="border p-4 rounded-md space-y-3 relative mb-3">
           {feeds.length > 1 && (
             <Button

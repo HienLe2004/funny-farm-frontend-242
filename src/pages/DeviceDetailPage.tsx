@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ArrowLeft, Calendar, Clock, History, Info } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import mqtt from "mqtt";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom"
 
 export default function DeviceDetailPage () {
     const {id} = useParams();
-    const [tick,setTick] = useState(0)
+    const [,setTick] = useState(0)
     const navigate = useNavigate()
     const feedKeyList = {
       'light-sensor':'light',
@@ -23,7 +23,7 @@ export default function DeviceDetailPage () {
       'pump-2':'pump2',
       'fan':'fan'
     }
-    const [devices,setDevices] = useState({
+    const [devices] = useState({
       "light-sensor": {
         name: "Cảm biến ánh sáng",
         unit: "%",
