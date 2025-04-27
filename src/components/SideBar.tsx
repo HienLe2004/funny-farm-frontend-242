@@ -159,7 +159,7 @@ export default function SideBar() {
                         onClick={handleLogout}
                     >
                         <LogOut className={cn("h-4 w-4", collapsed ? "mr-0" : "mr-2")} />
-                        {!collapsed && "Logout"}
+                        {!collapsed && "Thoát"}
                     </Button>
                 </div>
             </div>

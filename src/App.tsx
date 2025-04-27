@@ -43,7 +43,7 @@ function App() {
           <Route path="/rooms" element={<RootLayout><RoomsPage /></RootLayout>} />
           <Route path="/rooms/:roomId/devices" element={<RootLayout><RoomDevicesPage /></RootLayout>} />
           <Route path="/triggers" element={<RootLayout><TriggersPage /></RootLayout>} />
-          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/logs" element={<RootLayout><LogsPage /></RootLayout>} />
           <Route path="*" element={isAuthenticated() ? <Navigate to="/" /> : <Navigate to="/auth" />} />
           <Route path="/statistics" element={<RootLayout><StatisticsPage/></RootLayout>}></Route>
       </Routes>

@@ -88,7 +88,13 @@ export default function DeviceDetailPage () {
         status: "inactive"
       },
     })
-
+    const [sensorFeedIds, setSensorFeedIds] = useState({
+      "light":{feedId:0,threshold_min:0,threshold_max:0},
+      "temp":{feedId:0,threshold_min:0,threshold_max:0},
+      "hum":{feedId:0,threshold_min:0,threshold_max:0},
+      "soil":{feedId:0,threshold_min:0,threshold_max:0},
+      "ready":{feedId:0,threshold_min:0,threshold_max:0}
+    })
     const [device,setDevice] = useState(devices[id as keyof typeof devices])
     if (!device) {
         return<>Not found</>
@@ -190,6 +196,58 @@ export default function DeviceDetailPage () {
       setDevice(devices[id as keyof typeof devices])
       setFeedKey(feedKeyList[id as keyof typeof feedKeyList])
     },[id])
+    useEffect(() => {
+        const token = sessionStorage.getItem("accessToken")
+        if (!token) {
+          navigate("/auth")
+          return
+        }
+        const roomId = sessionStorage.getItem("roomId")
+        if (!roomId) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
+        const getDeviceList = async () => {
+          const roomResponse = await fetch(`${import.meta.env.VITE_BASEDAPIURL}/devices/room/${roomId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          if (!roomResponse.ok && roomResponse.status == 401) {
+            navigate("/auth")
+            return
+          }
+          const roomData = await roomResponse.json()
+          if (roomData.listDeviceDTO.length > 0) {
+            const deviceDataList = {
+              "light":{feedId:0,threshold_min:0,threshold_max:0}, "temp":{feedId:0,threshold_min:0,threshold_max:0}, "hum":{feedId:0,threshold_min:0,threshold_max:0}, "soil":{feedId:0,threshold_min:0,threshold_max:0}, "ready":{feedId:0,threshold_min:0,threshold_max:0}
+            }
+            const listDeviceDTO = roomData.listDeviceDTO
+            listDeviceDTO.map((deviceDTO:any) => {
+              if (deviceDTO.type == "SENSOR") {
+                const deviceFeedKey = Object.keys(deviceDTO.feedsList)[0]
+                Object.keys(deviceDataList).forEach((device) => {
+                  if (deviceFeedKey.split(".")[1].includes(device)) {
+                    deviceDataList[device as keyof typeof deviceDataList] = {
+                      "feedId": deviceDTO.feedsList[deviceFeedKey].feedId,
+                      "threshold_max": deviceDTO.feedsList[deviceFeedKey].threshold_max,
+                      "threshold_min": deviceDTO.feedsList[deviceFeedKey].threshold_min,
+                    }
+                  }
+                })
+              }
+            })
+            console.log(deviceDataList)
+            deviceDataList.ready.feedId = 1
+            setSensorFeedIds(deviceDataList)
+          }
+          else {
+            console.log("Room has no device")
+          }
+        }
+        getDeviceList()
+      }, [feedKey, sensorFeedIds.ready.feedId])
     return (
         <div className="flex min-h-screen w-full flex-col">
           <main className="flex-1">
@@ -237,10 +295,34 @@ export default function DeviceDetailPage () {
                         </div>
                       </div>
                       {device.type === "actuator" && (
-                        <Button className="mt-4 w-full" onClick={handleClick}>{device.status === "active" ? "Turn Off" : "Turn On"}</Button>
+                        <Button className="mt-4 w-full" onClick={handleClick}>{device.status === "active" ? "Tắt" : "Bật"}</Button>
                       )}
                     </CardContent>
                   </Card>
+                  {device.type=="sensor" &&
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Cấu hình ngưỡng</CardTitle>
+                      <CardDescription>Cấu hình ngưỡng hiện tại</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Ngưỡng dưới:</span>
+                          <span className="font-bold">
+                            {sensorFeedIds[feedKey as keyof typeof sensorFeedIds].threshold_min} {feedKey === "temp" ? "°C" : "%"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Ngưỡng trên:</span>
+                          <span className="font-bold">
+                            {sensorFeedIds[feedKey as keyof typeof sensorFeedIds].threshold_max} {feedKey === "temp" ? "°C" : "%"}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  }
                 </div>
     
                 <div className="mt-6">

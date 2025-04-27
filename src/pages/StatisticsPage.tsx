@@ -91,7 +91,7 @@ export default function StatisticsPage() {
   useEffect(() => {
     const token = sessionStorage.getItem("accessToken")
     if (!token) {
-      navigate("/login")
+      navigate("/auth")
       return
     }
     const roomId = sessionStorage.getItem("roomId")
@@ -107,7 +107,7 @@ export default function StatisticsPage() {
         }
       })
       if (!roomResponse.ok && roomResponse.status == 401) {
-        navigate("/login")
+        navigate("/auth")
         return
       }
       const roomData = await roomResponse.json()
@@ -149,7 +149,7 @@ export default function StatisticsPage() {
         }
       })
       if (!response.ok && response.status == 401) {
-        navigate("/login")
+        navigate("/auth")
         return
       }
       console.log(response)
@@ -357,20 +357,15 @@ export default function StatisticsPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Ngưỡng dưới:</span>
                       <span className="font-bold">
-                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_min} {sensorType === "temperature" ? "°C" : "%"}
+                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_min} {sensorType === "temp" ? "°C" : "%"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Ngưỡng trên:</span>
                       <span className="font-bold">
-                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_max} {sensorType === "temperature" ? "°C" : "%"}
+                        {sensorFeedIds[sensorType as keyof typeof sensorFeedIds].threshold_max} {sensorType === "temp" ? "°C" : "%"}
                       </span>
                     </div>
-                    {/* <div className="pt-2">
-                      <Button variant="outline" className="w-full">
-                        Cấu hình các ngưỡng
-                      </Button>
-                    </div> */}
                   </div>
                 </CardContent>
               </Card>
