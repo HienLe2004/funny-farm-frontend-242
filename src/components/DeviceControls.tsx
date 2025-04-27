@@ -12,12 +12,10 @@ export default function DeviceControls() {
         "fan":false
     })
     const [lastUpdatedDate, setLastUpdatedDate] = useState(new Date())
-    // Remove the tick state
-    // const [tick,setTick] = useState(0)
+    const [tick,setTick] = useState(0)
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] =  useState('da')
     const feedKeyList = ['pump1', 'pump2', 'fan']
 
     const handleSwitch = async (type:string, value:boolean)  => {
@@ -26,9 +24,14 @@ export default function DeviceControls() {
             console.log("INVALID KEY")
             return
         }
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
         setActuatorValues(prev => ({...prev, [type]:value}))
         const apiUrl = 'https://io.adafruit.com/api/v2/'
-        const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${type}/data`, {
+        const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${type}/data`, {
             method: 'POST',
             headers: {
                 "x-aio-key": userAIOUserkey,
@@ -47,6 +50,11 @@ export default function DeviceControls() {
             console.log("INVALID KEY")
             return
         }
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
+            return
+        }
         const mqttBrokerUrl = 'mqtt://io.adafruit.com'
         const client = mqtt.connect(mqttBrokerUrl, {
             username: userAIOUsername,
@@ -56,7 +64,7 @@ export default function DeviceControls() {
             client.on('connect', () => {
                 console.log('Connected to Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
             client.on('message', (topic,message) => {
@@ -71,7 +79,7 @@ export default function DeviceControls() {
             client.on('disconnect', () => {
                 console.log('Disconneted from Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
         }
@@ -80,7 +88,7 @@ export default function DeviceControls() {
             const updatedDates = []
             let latestDate = new Date()
             for (let i = 0; i < feedKeyList.length; i++) {
-                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}/data/last`, {
+                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}/data/last`, {
                     method: 'GET',
                     headers: {
                         'x-aio-key': userAIOUserkey
@@ -104,24 +112,21 @@ export default function DeviceControls() {
                 setLastUpdatedDate(latestDate)
             }
         }
-        // Remove the interval setup and cleanup
-        // const interval = setInterval(() => {
-        //     setTick((prev) => prev + 1)
-        // }, 1000);
+        const interval = setInterval(() => {
+            setTick((prev) => prev + 1)
+        }, 1000);
 
         getCurrentActuatorValue()
         connectAdafruitMQTT()
-        // return () => {
-        //     clearInterval(interval);
-        // }
-         // Add client.end() to cleanup MQTT connection
+        
          return () => {
+            clearInterval(interval);
             if (client) {
                 client.end();
                 console.log('Disconnected from Adafruit IO MQTT on cleanup');
             }
         }
-    }, [ownerAIOUsername, groupKey, userAIOUsername, userAIOUserkey]) // Added dependencies
+    }, [ownerAIOUsername, userAIOUsername, userAIOUserkey]) // Added dependencies
 
 
 

@@ -60,7 +60,14 @@ interface Schedule {
     }
     name: string
     status: string
-    feedsList: Record<string, number>
+    feedsList: Record< 
+      string,
+      {
+        feedId: number
+        threshold_max: number
+        threshold_min: number
+      }
+    >
   }
   status: string
   description: string
@@ -290,7 +297,12 @@ const CustomCalendar = ({
                   >
                     <div className="flex flex-col h-full">
                       <div className={`text-sm font-medium ${isToday ? "text-blue-600" : ""}`}>{day.getDate()}</div>
-                      <div className="flex-1 overflow-y-auto scrollbar-hide">
+                      {(dayTasks.length>0)&&<div className="mt-2">
+                        <div className={`${day.valueOf() < new Date().valueOf() ? 'bg-green-400' : 'bg-red-400'} w-6 h-6 text-white text-xs flex justify-center items-center rounded-full text-center`}>
+                          {dayTasks.length}
+                        </div>
+                      </div>}
+                      {/* <div className="flex-1 overflow-y-auto scrollbar-hide">
                         {dayTasks.slice(0, 2).map((task) => (
                           <div
                             key={task.id}
@@ -302,7 +314,7 @@ const CustomCalendar = ({
                         {dayTasks.length > 2 && (
                           <div className="text-xs text-muted-foreground">+{dayTasks.length - 2} more</div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </button>
                 </TooltipTrigger>
@@ -1044,7 +1056,7 @@ function ScheduleItem({ schedule, onDelete }: { schedule: Schedule; onDelete: ()
                   <Label htmlFor="update-weekDay">Ngày trong tuần</Label>
                   <Select
                     value={updatedSchedule.weekDay}
-                    onChange={(e) => handleInputChange("weekDay", e.target.value)}
+                    onValueChange={(value) => handleInputChange("weekDay", value)}
                   >
                     <SelectTrigger id="update-weekDay">
                       <SelectValue placeholder="Chọn ngày trong tuần" />

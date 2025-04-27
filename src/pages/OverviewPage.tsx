@@ -50,19 +50,6 @@ export default function OverviewPage() {
                                     <DeviceControls/>
                                 </CardContent>
                             </Card>
-                            {/* <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-2xl font-semibold">LED Display</CardTitle>
-                                    <CardDescription>Current message on LED screen</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex flex-col gap-4">
-                                        <div className="bg-black p-4 rounded-md">
-                                            <p className="text-green-500 font-mono text-center">FARM SYSTEM ACTIVE</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card> */}
                         </div>
                         <div className="mt-6">
                             <Card>

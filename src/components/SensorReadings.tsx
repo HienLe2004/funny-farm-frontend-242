@@ -11,16 +11,19 @@ export default function SensorReadings () {
         "soil":0
     })
     const [lastUpdatedDate, setLastUpdatedDate] = useState(new Date())
-    // Remove the tick state
-    // const [tick,setTick] = useState(0)
+    const [tick,setTick] = useState(0)
     const userAIOUsername = import.meta.env.VITE_USERAIOUSERNAME?import.meta.env.VITE_USERAIOUSERNAME:""
     const userAIOUserkey = import.meta.env.VITE_USERAIOUSERKEY?import.meta.env.VITE_USERAIOUSERKEY:""
     const ownerAIOUsername = import.meta.env.VITE_OWNERAIOUSERNAME?import.meta.env.VITE_OWNERAIOUSERNAME:""
-    const [groupKey, setGroupKey] = useState('da')
     const feedKeyList = ['hum', 'light', 'temp', 'soil']
     useEffect(() => {
         if (userAIOUsername == "" || userAIOUserkey == "" || ownerAIOUsername == "") {
             console.log("INVALID KEY")
+            return
+        }
+        const roomKey = sessionStorage.getItem("roomKey")
+        if (!roomKey) {
+            console.log("MISSING GROUP KEY")
             return
         }
         const mqttBrokerUrl = 'mqtt://io.adafruit.com'
@@ -32,7 +35,7 @@ export default function SensorReadings () {
             client.on('connect', () => {
                 console.log('Connected to Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.subscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.subscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
             client.on('message', (topic,message) => {
@@ -47,7 +50,7 @@ export default function SensorReadings () {
             client.on('disconnect', () => {
                 console.log('Disconneted from Adafruit IO MQTT')
                 for (let i = 0; i < feedKeyList.length; i++) {
-                    client.unsubscribe(`${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}`)
+                    client.unsubscribe(`${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}`)
                 }
             })
         }
@@ -56,7 +59,7 @@ export default function SensorReadings () {
             const updatedDates = []
             let latestDate = new Date()
             for (let i = 0; i < feedKeyList.length; i++) {
-                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${groupKey}.${feedKeyList[i]}/data/last`, {
+                const response = await fetch(`${apiUrl}/${ownerAIOUsername}/feeds/${roomKey}.${feedKeyList[i]}/data/last`, {
                     method: 'GET',
                     headers: {
                         'x-aio-key': userAIOUserkey
@@ -81,23 +84,19 @@ export default function SensorReadings () {
             }
 
         }
-        // Remove the interval setup and cleanup
-        // const interval = setInterval(() => {
-        //     setTick((prev) => prev + 1)
-        // }, 1000);
+        const interval = setInterval(() => {
+            setTick((prev) => prev + 1)
+        }, 1000);
         getCurrentSensorValue()
         connectAdafruitMQTT()
-        // return () => {
-        //     clearInterval(interval); 
-        // }
-        // Add client.end() to cleanup MQTT connection
         return () => {
+            clearInterval(interval);
             if (client) {
                 client.end();
                 console.log('Disconnected from Adafruit IO MQTT on cleanup');
             }
         }
-    }, [ownerAIOUsername, groupKey, userAIOUsername, userAIOUserkey]) // Added dependencies
+    }, [ownerAIOUsername, userAIOUsername, userAIOUserkey]) // Added dependencies
 
     
     return (
